@@ -1,0 +1,1876 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Muskel-Trainingsatlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout: sticky body chart on the left, exercise plan for the selected region on the right; on phones the chart comes first, then the plan. */
+  :root {
+    --bg: #EEF2F3;
+    --surface: #FFFFFF;
+    --ink: #14212B;
+    --ink-2: #4B5C68;
+    --line: #CBD5DB;
+    --body: #D3DCE1;
+    --muscle: #F6F9FA;
+    --muscle-line: #97A9B4;
+    --accent: #00796E;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #D3EEE9;
+    --font-display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+    --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1A21;
+      --surface: #17252E;
+      --ink: #E7EEF1;
+      --ink-2: #9FB1BC;
+      --line: #2A3B46;
+      --body: #1F313C;
+      --muscle: #2B4150;
+      --muscle-line: #5E7B8C;
+      --accent: #38C9B6;
+      --accent-ink: #06211D;
+      --accent-soft: #17443F;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1A21;
+    --surface: #17252E;
+    --ink: #E7EEF1;
+    --ink-2: #9FB1BC;
+    --line: #2A3B46;
+    --body: #1F313C;
+    --muscle: #2B4150;
+    --muscle-line: #5E7B8C;
+    --accent: #38C9B6;
+    --accent-ink: #06211D;
+    --accent-soft: #17443F;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.55;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 48px;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+
+  .eyebrow {
+    margin: 0 0 8px;
+    font: 600 14px/1 var(--font-display);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 0 0 12px;
+    font: 700 clamp(42px, 10vw, 68px)/0.95 var(--font-display);
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+  .lede { max-width: 62ch; margin: 0 0 28px; color: var(--ink-2); }
+
+  .layout { display: grid; gap: 28px; }
+  .atlas { display: grid; gap: 12px; justify-items: stretch; align-content: start; min-width: 0; }
+  .atlas .seg, .atlas .caption { justify-self: center; }
+  .seg {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+  }
+  .seg button {
+    min-height: 40px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-2);
+    font: 600 14px/1 var(--font-body);
+    cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+  #body-svg {
+    display: block;
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+    height: auto;
+    aspect-ratio: 240 / 504;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .base { fill: var(--body); }
+  .region { cursor: pointer; outline: none; }
+  .region .m {
+    fill: var(--muscle);
+    stroke: var(--muscle-line);
+    stroke-width: 1;
+    stroke-linejoin: round;
+    transition: fill 0.15s ease;
+  }
+  .region:hover .m { fill: var(--accent-soft); }
+  .region.on .m { fill: var(--accent); stroke: var(--accent); }
+  .region:focus-visible .m { stroke: var(--ink); stroke-width: 2.5; }
+  .decor { fill: none; stroke: var(--muscle-line); stroke-width: 0.8; pointer-events: none; opacity: 0.8; }
+  .caption {
+    margin: 0;
+    font: 700 22px/1 var(--font-display);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .caption b { color: var(--accent); font-weight: 700; }
+
+  .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+  .chips button {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    font: 500 15px/1.2 var(--font-body);
+    text-align: left;
+    cursor: pointer;
+  }
+  .chips button:hover { border-color: var(--accent); }
+  .chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .seg button:focus-visible, .chips button:focus-visible, .links a:focus-visible, .extra a:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  .plan { min-width: 0; scroll-margin-top: 12px; }
+  .plan-head h2 {
+    margin: 0 0 6px;
+    font: 700 clamp(38px, 8vw, 54px)/0.95 var(--font-display);
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+  .plan-head p { max-width: 62ch; margin: 0 0 8px; color: var(--ink-2); }
+  .extra { margin: 0 0 18px; font-size: 15px; }
+  .extra a { color: var(--accent); font-weight: 600; }
+
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); }
+  .ex {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+  .ex-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
+  .ex h3 {
+    margin: 0;
+    min-width: 0;
+    font: 700 25px/1.05 var(--font-display);
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+  .ex h3 .n { margin-right: 8px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .sets {
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font: 600 14px/1.4 var(--font-body);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .gear { padding: 10px 12px; border-radius: 6px; background: var(--bg); }
+  .gear span {
+    display: block;
+    font: 600 11px/1.2 var(--font-body);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .gear strong { font-weight: 500; font-size: 15px; }
+  .ex p { margin: 0; font-size: 15px; }
+  .ex .err { color: var(--ink-2); }
+  .ex .err b { color: var(--ink); font-weight: 600; }
+  .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+  .links a {
+    flex: 1 1 130px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1.5px solid var(--accent);
+    border-radius: 6px;
+    color: var(--accent);
+    font: 600 15px/1 var(--font-body);
+    text-decoration: none;
+  }
+  .links a:hover { background: var(--accent-soft); }
+  .links svg { width: 18px; height: 18px; flex: none; }
+
+  .note { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .note h2 {
+    margin: 0 0 10px;
+    font: 700 24px/1 var(--font-display);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .note ul { display: grid; gap: 8px 32px; margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 15px; }
+
+  .modes { margin: 0 0 24px; }
+  .gear-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    color: var(--accent);
+    font: 600 14px/1.3 var(--font-body);
+    text-decoration: none;
+  }
+  .gear-link:hover { text-decoration: underline; }
+  .gear-link svg { width: 16px; height: 16px; flex: none; }
+  .gear-link:focus-visible, .nm:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .ex { transition: box-shadow 0.3s ease; }
+  .ex.flash { box-shadow: 0 0 0 3px var(--accent); }
+
+  .media-box {
+    margin: 6px 0 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .media-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .media-tabs button {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 6px 10px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+    color: var(--ink-2);
+    font: 600 13px/1 var(--font-body);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .media-tabs button:hover {
+    color: var(--ink);
+    background: var(--bg);
+  }
+  .media-tabs button[aria-selected="true"] {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .media-tabs svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
+  }
+  .media-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    background: var(--surface);
+  }
+  .media-stage svg {
+    width: 100%;
+    height: 100%;
+    max-height: 240px;
+    display: block;
+  }
+  .vid-controls {
+    position: absolute;
+    bottom: 8px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .vid-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    cursor: pointer;
+    padding: 0;
+    flex: none;
+  }
+  .vid-btn svg {
+    width: 13px;
+    height: 13px;
+  }
+  .vid-bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--bg);
+    overflow: hidden;
+    position: relative;
+  }
+  .vid-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+  .vid-speed {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--ink);
+    font: 600 11px/1 var(--font-body);
+    cursor: pointer;
+    padding: 3px 5px;
+  }
+  .phase-badge {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    font: 600 11.5px/1.2 var(--font-body);
+    pointer-events: none;
+  }
+  .phase-badge b {
+    color: var(--accent);
+  }
+  .gear-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 5px 10px;
+    border: 1px solid var(--accent);
+    border-radius: 5px;
+    background: var(--surface);
+    color: var(--accent);
+    font: 600 13px/1.2 var(--font-body);
+    cursor: pointer;
+  }
+  .gear-btn:hover {
+    background: var(--accent-soft);
+  }
+  .gear-btn svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
+  }
+  .gear-pop {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+  }
+  .gear-pop svg {
+    width: 100%;
+    height: auto;
+    max-height: 180px;
+    display: block;
+  }
+
+
+  .wk-info { margin: 0 0 20px; padding: 14px 16px; border-radius: 8px; background: var(--accent-soft); }
+  .wk-info h3 { margin: 0 0 4px; font: 700 24px/1.05 var(--font-display); letter-spacing: 0.02em; text-transform: uppercase; color: var(--accent); }
+  .wk-info p { margin: 0; font-size: 15px; }
+  .wk-info .scheme { margin-top: 6px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .days { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+  .day { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  .day .dn { margin: 0 0 2px; font: 600 13px/1 var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
+  .day h3 { margin: 0 0 8px; font: 700 26px/1.05 var(--font-display); letter-spacing: 0.01em; text-transform: uppercase; text-wrap: balance; }
+  .day ol { margin: 0; padding: 0; list-style: none; }
+  .day li { display: grid; gap: 2px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .li-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+  .nm {
+    min-height: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font: 600 16px/1.3 var(--font-body);
+    text-align: left;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 3px;
+  }
+  .li-meta { font-size: 14px; color: var(--ink-2); }
+  .li-meta b { font-weight: 500; color: var(--accent); }
+
+  @media (min-width: 860px) {
+    .layout { grid-template-columns: 300px minmax(0, 1fr); gap: 40px; align-items: start; }
+    .atlas { position: sticky; top: 16px; }
+    .note ul { grid-template-columns: 1fr 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .region .m { transition: none; }
+  }
+</style>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow">Ganzkörper · Fitnessstudio</p>
+    <h1>Muskel-Trainingsatlas</h1>
+    <p class="lede">Tippe auf eine Muskelgruppe. Du bekommst die passenden Übungen mit Gerät, Sätzen und Wiederholungen, Technikhinweisen sowie integrierten Übungsbildern, Geräte-Grafiken und Bewegungs-Videos. Der 4-Wochen-Plan verteilt alle Muskelgruppen auf vier Trainingstage.</p>
+  </header>
+
+  <div class="seg modes" role="group" aria-label="Ansicht wählen">
+    <button type="button" id="mode-atlas" aria-pressed="true">Muskelatlas</button>
+    <button type="button" id="mode-plan" aria-pressed="false">4-Wochen-Plan</button>
+  </div>
+
+  <div class="layout" id="view-atlas">
+    <section class="atlas" aria-label="Körperansicht">
+      <div class="seg">
+        <button type="button" id="btn-front" aria-pressed="true">Vorderseite</button>
+        <button type="button" id="btn-back" aria-pressed="false">Rückseite</button>
+      </div>
+      <svg id="body-svg" viewBox="0 6 240 504" role="group" aria-label="Körper mit anklickbaren Muskelgruppen"></svg>
+      <p class="caption" id="caption"></p>
+    </section>
+
+    <section class="plan" id="plan" aria-live="polite">
+      <ul class="chips" id="chips" aria-label="Muskelgruppen"></ul>
+      <div class="plan-head" id="plan-head"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+  </div>
+
+  <section id="view-plan" class="weekplan" aria-label="Trainingsplan für 4 Wochen" hidden>
+    <div class="plan-head">
+      <h2>4 Wochen, ganzer Körper</h2>
+      <p>Vier Trainingstage pro Woche, zum Beispiel Montag, Dienstag, Donnerstag und Freitag. Eine Einheit dauert etwa 60 bis 75 Minuten. Alle zwölf Muskelgruppen kommen jede Woche dran.</p>
+    </div>
+    <ul class="chips wk" id="wk-chips" aria-label="Woche wählen"></ul>
+    <div class="wk-info" id="wk-info"></div>
+    <div class="days" id="days"></div>
+  </section>
+
+  <aside class="note">
+    <h2>So nutzt du den Plan</h2>
+    <ul>
+      <li>Aufwärmen: 5 bis 10 Minuten leichtes Cardio und ein bis zwei leichte Einstiegssätze pro Übung.</li>
+      <li>Gewicht: So wählen, dass nach dem letzten Satz noch ein bis zwei saubere Wiederholungen möglich wären.</li>
+      <li>Pausen: 60 bis 90 Sekunden bei Einzelgelenk-Übungen, 2 bis 3 Minuten bei schweren Grundübungen.</li>
+      <li>Aufbau: Pro Muskelgruppe zwei bis drei Übungen auswählen, die schwere Grundübung zuerst.</li>
+      <li>Jede Übung zeigt direkt ein anatomisches Übungsbild (Start- &amp; Endposition), eine Geräte-Skizze sowie eine interaktive Video-Animation des Bewegungsablaufs.</li>
+      <li>Bei Schmerzen, Verletzungen oder Vorerkrankungen vorher mit Arzt oder Trainer sprechen.</li>
+    </ul>
+  </aside>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var REGIONS = [
+    {
+      id: 'brust', label: 'Brust', views: ['front'],
+      muscles: 'Großer Brustmuskel (Pectoralis major). Vordere Schulter und Trizeps arbeiten als Helfer mit.',
+      more: { t: 'Weitere Brustübungen mit Fotos (wikifit.de)', u: 'https://www.wikifit.de/fitnessuebungen/brustmuskeltraining' },
+      ex: [
+        { n: 'Bankdrücken mit der Langhantel', g: 'Flachbank mit Rack und Langhantel', s: '3 × 6–10 Wdh.', q: 'Bankdrücken Langhantel',
+          how: 'Schulterblätter zusammenziehen und nach unten setzen, Füße fest am Boden. Stange kontrolliert zur unteren Brust absenken, Unterarme bleiben senkrecht, dann kraftvoll hochdrücken.',
+          err: 'Ellbogen weit abgespreizt oder Gesäß hebt von der Bank ab.' },
+        { n: 'Schrägbankdrücken mit Kurzhanteln', g: 'Verstellbare Schrägbank (ca. 30°) und Kurzhanteln', s: '3 × 8–12 Wdh.', q: 'Schrägbankdrücken Kurzhantel',
+          how: 'Hanteln über der oberen Brust starten und bis auf Brusthöhe absenken. Ellbogen etwa 45° zum Körper, oben nicht ganz durchstrecken.',
+          err: 'Bank zu steil eingestellt, dann übernimmt die Schulter.' },
+        { n: 'Brustpresse', g: 'Brustpressen-Maschine (Chest Press)', s: '3 × 10–12 Wdh.', q: 'Brustpresse Maschine',
+          how: 'Sitzhöhe so einstellen, dass die Griffe auf Brusthöhe liegen. Rücken an die Lehne, Schultern unten, gleichmäßig nach vorn drücken.',
+          err: 'Schultern wandern nach vorn und oben.' },
+        { n: 'Butterfly / Fliegende am Kabelzug', g: 'Butterfly-Maschine oder doppelter Kabelzug', s: '3 × 12–15 Wdh.', q: 'Butterfly Fliegende Kabelzug Brust',
+          how: 'Ellbogen leicht gebeugt, Arme in einem Bogen vor der Brust zusammenführen, oben kurz anspannen und langsam bis zur Dehnung zurück.',
+          err: 'Zu viel Gewicht, die Bewegung wird zum Drücken.' }
+      ]
+    },
+    {
+      id: 'schultern', label: 'Schultern', views: ['front', 'back'],
+      muscles: 'Deltamuskel (Deltoideus) mit vorderem, seitlichem und hinterem Anteil.',
+      ex: [
+        { n: 'Schulterdrücken mit Kurzhanteln', g: 'Bank mit steiler Rückenlehne und Kurzhanteln', s: '3 × 8–12 Wdh.', q: 'Schulterdrücken Kurzhantel',
+          how: 'Hanteln auf Schulterhöhe, Unterarme senkrecht, über dem Kopf zusammen drücken. Rumpf bleibt fest, unten bis etwa Ohrhöhe senken.',
+          err: 'Hohlkreuz beim Drücken.' },
+        { n: 'Seitheben', g: 'Kurzhanteln oder Kabelzug', s: '3 × 12–15 Wdh.', q: 'Seitheben Kurzhantel',
+          how: 'Leichte Hanteln, Ellbogen leicht gebeugt, seitlich bis auf Schulterhöhe heben und langsam senken, ohne Schwung.',
+          err: 'Schwung aus dem Rücken, Gewicht zu hoch.' },
+        { n: 'Face Pull', g: 'Kabelzug auf Gesichtshöhe mit Seilgriff', s: '3 × 12–15 Wdh.', q: 'Face Pull Kabelzug',
+          how: 'Seil zum Gesicht ziehen, Ellbogen hoch und nach außen, am Ende die Hände neben die Ohren und die Schulterblätter zusammenführen.',
+          err: 'Oberkörper lehnt zurück, Gewicht zu hoch.' },
+        { n: 'Reverse Butterfly', g: 'Butterfly-Maschine, umgekehrt sitzend', s: '3 × 12–15 Wdh.', q: 'Reverse Butterfly hintere Schulter Maschine',
+          how: 'Brust am Polster, Arme in Schulterhöhe nach hinten öffnen, am Ende die Schulterblätter kurz zusammenziehen.',
+          err: 'Arme zu tief oder Bewegung mit Schwung.' }
+      ]
+    },
+    {
+      id: 'bizeps', label: 'Bizeps', views: ['front'],
+      muscles: 'Zweiköpfiger Oberarmmuskel (Biceps brachii) und Oberarmmuskel (Brachialis).',
+      ex: [
+        { n: 'Kurzhantel-Curls', g: 'Kurzhanteln, stehend oder auf der Bank', s: '3 × 8–12 Wdh.', q: 'Kurzhantel Curls Bizeps',
+          how: 'Ellbogen seitlich am Körper fixieren, die Hantel beim Heben nach außen drehen, oben kurz anspannen und langsam senken.',
+          err: 'Ellbogen wandern nach vorn, der Rücken schwingt mit.' },
+        { n: 'SZ-Stangen-Curls', g: 'SZ-Curlstange', s: '3 × 8–12 Wdh.', q: 'SZ Curls Bizeps',
+          how: 'Schulterbreiter Untergriff an den Biegungen der Stange, Oberarme ruhig halten und die Stange bis auf Schulterhöhe führen.',
+          err: 'Hohlkreuz und Schwung aus der Hüfte.' },
+        { n: 'Scott-Curls', g: 'Scott-Bank (Preacher-Bank) mit SZ-Stange oder Maschine', s: '3 × 10–12 Wdh.', q: 'Scott Curls Scottbank',
+          how: 'Oberarme flach auf dem Polster, unten nicht ganz durchstrecken und kontrolliert hochführen.',
+          err: 'Unten ruckartig fallen lassen.' },
+        { n: 'Hammer-Curls', g: 'Kurzhanteln mit neutralem Griff', s: '3 × 10–12 Wdh.', q: 'Hammer Curls',
+          how: 'Daumen zeigen nach oben, Handgelenke bleiben gerade, abwechselnd oder beidarmig heben.',
+          err: 'Schultern werden hochgezogen.' }
+      ]
+    },
+    {
+      id: 'trizeps', label: 'Trizeps', views: ['back'],
+      muscles: 'Dreiköpfiger Armstrecker (Triceps brachii). Er macht etwa zwei Drittel des Oberarms aus.',
+      more: { t: 'Weitere Trizepsübungen mit Fotos (wikifit.de)', u: 'https://www.wikifit.de/Wissen/Muskeln/Trizeps/' },
+      ex: [
+        { n: 'Trizepsdrücken am Kabelzug', g: 'Oberer Kabelzug mit Seil oder V-Stange', s: '3 × 10–15 Wdh.', q: 'Trizepsdrücken Kabelzug',
+          how: 'Ellbogen eng am Körper fixieren, nur die Unterarme bewegen, unten die Arme ganz strecken und kurz halten.',
+          err: 'Oberkörper kippt nach vorn, Ellbogen wandern.' },
+        { n: 'Dips', g: 'Dip-Station (Barren) oder assistierte Dip-Maschine', s: '3 × 6–12 Wdh.', q: 'Dips Trizeps Barren',
+          how: 'Oberkörper aufrecht für mehr Trizeps, Ellbogen nah am Körper, bis etwa 90° im Ellbogen absenken.',
+          err: 'Zu tief absenken, das belastet die Schultern.' },
+        { n: 'Trizepsstrecken über Kopf', g: 'Kabelzug mit Seil oder eine Kurzhantel', s: '3 × 10–12 Wdh.', q: 'Trizepsstrecken über Kopf',
+          how: 'Ellbogen zeigen nach oben und bleiben fix, das Gewicht hinter dem Kopf absenken und wieder strecken.',
+          err: 'Ellbogen weichen weit nach außen aus.' },
+        { n: 'Enges Bankdrücken', g: 'Flachbank mit Rack und Langhantel', s: '3 × 8–10 Wdh.', q: 'Enges Bankdrücken Trizeps',
+          how: 'Griff etwa schulterbreit, Ellbogen nah am Körper, Stange zur unteren Brust führen.',
+          err: 'Griff zu eng, das belastet die Handgelenke.' }
+      ]
+    },
+    {
+      id: 'unterarme', label: 'Unterarme', views: ['front', 'back'],
+      muscles: 'Handgelenkbeuger und -strecker sowie der Oberarm-Speichen-Muskel. Wichtig für die Griffkraft.',
+      ex: [
+        { n: 'Handgelenkcurls', g: 'Kurzhantel oder SZ-Stange, dazu eine Bank', s: '3 × 15–20 Wdh.', q: 'Handgelenkcurls Unterarm',
+          how: 'Unterarme auf der Bank oder den Oberschenkeln ablegen, Handflächen nach oben, das Gewicht aus dem Handgelenk heben und langsam senken.',
+          err: 'Gewicht zu hoch, die Bewegung kommt aus dem Ellbogen.' },
+        { n: 'Reverse-Curls', g: 'SZ-Stange mit Obergriff', s: '3 × 10–15 Wdh.', q: 'Reverse Curls Unterarm',
+          how: 'Obergriff, Ellbogen am Körper, die Stange hochführen, ohne die Handgelenke abzuknicken.',
+          err: 'Schwung aus dem Oberkörper.' },
+        { n: 'Farmers Walk', g: 'Zwei schwere Kurzhanteln', s: '3 × 30–40 Sek.', q: 'Farmers Walk',
+          how: 'Aufrecht gehen, Schultern unten, Hanteln fest greifen und kleine, ruhige Schritte machen.',
+          err: 'Schultern hochgezogen oder Hohlkreuz.' }
+      ]
+    },
+    {
+      id: 'ruecken-oben', label: 'Oberer Rücken', views: ['back'],
+      muscles: 'Breiter Rückenmuskel (Latissimus), Trapezmuskel und Rautenmuskeln (Rhomboiden).',
+      more: { t: 'Weitere Rückenübungen mit Fotos (wikifit.de)', u: 'https://www.wikifit.de/fitnessuebungen/rueckentraining/rudern-kurzhantel' },
+      ex: [
+        { n: 'Latziehen zur Brust', g: 'Latzugturm mit Latstange', s: '3 × 8–12 Wdh.', q: 'Latziehen zur Brust Latzug',
+          how: 'Griff etwas weiter als schulterbreit, Brust raus, die Stange zur oberen Brust ziehen und die Ellbogen nach unten führen.',
+          err: 'Stange hinter den Nacken ziehen oder mit dem Oberkörper schwingen.' },
+        { n: 'Sitzendes Rudern am Kabelzug', g: 'Kabelrudern mit V-Griff', s: '3 × 10–12 Wdh.', q: 'Rudern Kabelzug sitzend',
+          how: 'Aufrecht sitzen, den Griff zum Bauchnabel ziehen, die Schulterblätter am Ende zusammenführen und langsam nach vorn lassen.',
+          err: 'Der Oberkörper pendelt vor und zurück.' },
+        { n: 'Einarmiges Kurzhantelrudern', g: 'Flachbank und Kurzhantel', s: '3 × 8–12 Wdh. je Seite', q: 'Einarmiges Kurzhantelrudern',
+          how: 'Hand und Knie aufstützen, Rücken gerade, die Hantel zur Hüfte ziehen und den Ellbogen nah am Körper führen.',
+          err: 'Der Oberkörper dreht beim Ziehen auf.' },
+        { n: 'Klimmzüge (assistiert)', g: 'Klimmzugstange oder assistierte Klimmzug-Maschine', s: '3 × 5–10 Wdh.', q: 'Klimmzüge assistiert',
+          how: 'Erst die Schulterblätter nach unten ziehen, dann die Brust zur Stange führen und kontrolliert absenken.',
+          err: 'Halbe Wiederholungen ohne volle Streckung.' },
+        { n: 'Schulterzucken (Trapez)', g: 'Kurzhanteln', s: '3 × 12–15 Wdh.', q: 'Schulterzucken Kurzhantel Trapez',
+          how: 'Arme hängen locker, die Schultern gerade nach oben zu den Ohren heben und oben kurz halten.',
+          err: 'Schultern kreisen statt gerade zu heben.' }
+      ]
+    },
+    {
+      id: 'ruecken-unten', label: 'Unterer Rücken', views: ['back'],
+      muscles: 'Rückenstrecker (Erector spinae). Er stabilisiert Wirbelsäule und Rumpf.',
+      ex: [
+        { n: 'Hyperextension', g: 'Hyperextension-Bank (45° oder 90°)', s: '3 × 12–15 Wdh.', q: 'Hyperextension Rückenstrecker',
+          how: 'Hüfte am Polster, Rücken gerade, den Oberkörper bis in die Waagrechte heben und nicht ins Hohlkreuz überstrecken.',
+          err: 'Oben zu weit überstrecken.' },
+        { n: 'Rückenstrecker-Maschine', g: 'Back-Extension-Maschine', s: '3 × 10–15 Wdh.', q: 'Rückenstrecker Maschine Back Extension',
+          how: 'Gewicht eher leicht wählen, die Bewegung langsam und kontrolliert ausführen, oben kurz halten.',
+          err: 'Mit Schwung nach hinten ziehen.' },
+        { n: 'Superman', g: 'Gymnastikmatte', s: '3 × 10–12 Wdh. (2 Sek. halten)', q: 'Superman Übung Rücken',
+          how: 'In Bauchlage Arme und Beine gleichzeitig leicht anheben, Blick zum Boden, oben kurz halten.',
+          err: 'Kopf in den Nacken legen.' },
+        { n: 'Kreuzheben', g: 'Langhantel mit Hantelscheiben', s: '3 × 5–8 Wdh.', q: 'Kreuzheben Technik',
+          how: 'Stange nah am Körper, Rücken gerade, aus Beinen und Hüfte aufrichten. Technik zuerst mit leichtem Gewicht üben, am besten mit einem Trainer.',
+          err: 'Runder Rücken oder die Stange wandert vom Körper weg.' }
+      ]
+    },
+    {
+      id: 'bauch', label: 'Bauch', views: ['front'],
+      muscles: 'Gerader Bauchmuskel (Rectus abdominis), schräge Bauchmuskeln und die tiefe Rumpfmuskulatur.',
+      ex: [
+        { n: 'Cable Crunch', g: 'Kabelzug oben mit Seilgriff', s: '3 × 12–15 Wdh.', q: 'Cable Crunch Kabelzug',
+          how: 'Kniend, das Seil neben dem Kopf halten, die Wirbelsäule einrollen und die Ellbogen zu den Knien führen. Die Hüfte bleibt ruhig.',
+          err: 'Die Bewegung kommt aus der Hüfte statt aus dem Bauch.' },
+        { n: 'Hängendes Beinheben', g: 'Beinheber-Station (Captain’s Chair) oder Klimmzugstange', s: '3 × 10–15 Wdh.', q: 'Hängendes Beinheben',
+          how: 'Schultern aktiv, Becken leicht nach hinten kippen, Knie oder gestreckte Beine kontrolliert heben und ohne Schwung senken.',
+          err: 'Der Körper schwingt hin und her.' },
+        { n: 'Plank (Unterarmstütz)', g: 'Gymnastikmatte', s: '3 × 30–60 Sek.', q: 'Plank Unterarmstütz',
+          how: 'Ellbogen unter den Schultern, Körper bildet eine Linie, Gesäß und Bauch fest anspannen.',
+          err: 'Hohlkreuz oder hängende Hüfte.' },
+        { n: 'Bauchmaschine (Crunch)', g: 'Crunch-Maschine', s: '3 × 12–15 Wdh.', q: 'Bauchmaschine Crunch Maschine',
+          how: 'Sitzhöhe so einstellen, dass der Drehpunkt auf Bauchhöhe liegt, den Oberkörper einrollen und beim Zusammenziehen ausatmen.',
+          err: 'Mit den Armen ziehen statt mit dem Bauch.' }
+      ]
+    },
+    {
+      id: 'quadrizeps', label: 'Oberschenkel vorne', views: ['front'],
+      muscles: 'Vierköpfiger Oberschenkelmuskel (Quadrizeps). Er streckt das Knie.',
+      more: { t: 'Weitere Beinübungen mit Fotos (wikifit.de)', u: 'https://www.wikifit.de/fitnessuebungen/beinmuskeltraining' },
+      ex: [
+        { n: 'Kniebeuge', g: 'Langhantel im Rack oder Multipresse', s: '3 × 6–10 Wdh.', q: 'Kniebeuge Technik',
+          how: 'Füße etwa schulterbreit, Knie folgen den Zehen, Rücken gerade, bis mindestens parallel zum Boden absenken.',
+          err: 'Knie fallen nach innen oder die Fersen heben ab.' },
+        { n: 'Beinpresse', g: 'Beinpresse (45°)', s: '3 × 10–12 Wdh.', q: 'Beinpresse Technik',
+          how: 'Rücken und Gesäß am Polster, Füße schulterbreit, Knie kontrolliert beugen und oben nicht ganz durchstrecken.',
+          err: 'Das Gesäß hebt ab oder die Knie werden ganz durchgedrückt.' },
+        { n: 'Beinstrecker', g: 'Beinstrecker-Maschine', s: '3 × 12–15 Wdh.', q: 'Beinstrecker Maschine',
+          how: 'Polster auf den Schienbeinen knapp oberhalb der Knöchel, Beine strecken, oben kurz halten und langsam senken.',
+          err: 'Die Beine werden mit Schwung hochgeschleudert.' },
+        { n: 'Ausfallschritte', g: 'Kurzhanteln', s: '3 × 10 Wdh. je Bein', q: 'Ausfallschritte Kurzhantel',
+          how: 'Großer Schritt, Oberkörper aufrecht, das hintere Knie fast bis zum Boden senken und mit dem vorderen Fuß wieder hochdrücken.',
+          err: 'Das vordere Knie knickt nach innen.' }
+      ]
+    },
+    {
+      id: 'beinbizeps', label: 'Oberschenkel hinten', views: ['back'],
+      muscles: 'Beinbeuger (Hamstrings). Sie beugen das Knie und strecken die Hüfte.',
+      more: { t: 'Weitere Beinbizeps-Übungen mit Fotos (wikifit.de)', u: 'https://www.wikifit.de/fitnessuebungen/beinbizepstraining' },
+      ex: [
+        { n: 'Rumänisches Kreuzheben', g: 'Langhantel oder Kurzhanteln', s: '3 × 8–12 Wdh.', q: 'Rumänisches Kreuzheben',
+          how: 'Knie leicht gebeugt, die Hüfte weit nach hinten schieben, die Hantel dicht am Bein bis zur Dehnung absenken, Rücken gerade.',
+          err: 'Runder Rücken oder die Hantel entfernt sich vom Körper.' },
+        { n: 'Beinbeuger liegend', g: 'Liegende Beinbeuger-Maschine (Leg Curl)', s: '3 × 10–15 Wdh.', q: 'Beinbeuger liegend Leg Curl',
+          how: 'Polster knapp oberhalb der Fersen, Hüfte bleibt am Polster, die Fersen zum Gesäß ziehen und langsam zurück.',
+          err: 'Die Hüfte hebt sich ab.' },
+        { n: 'Beinbeuger sitzend', g: 'Sitzende Beinbeuger-Maschine', s: '3 × 10–15 Wdh.', q: 'Beinbeuger sitzend Maschine',
+          how: 'Rücken an die Lehne, Polster fixieren, die Fersen nach unten und hinten ziehen, unten kurz halten.',
+          err: 'Mit Schwung aus dem Oberkörper.' }
+      ]
+    },
+    {
+      id: 'gesaess', label: 'Gesäß', views: ['back'],
+      muscles: 'Großer Gesäßmuskel (Gluteus maximus) und mittlerer Gesäßmuskel (Gluteus medius).',
+      more: { t: 'Weitere Beinübungen mit Fotos (wikifit.de)', u: 'https://www.wikifit.de/fitnessuebungen/beinmuskeltraining' },
+      ex: [
+        { n: 'Hip Thrust', g: 'Flachbank mit Langhantel und Polster oder Hip-Thrust-Maschine', s: '3 × 8–12 Wdh.', q: 'Hip Thrust',
+          how: 'Schulterblätter an der Bank, Fersen nah am Gesäß, die Hüfte strecken, bis Oberkörper und Oberschenkel eine Linie bilden, oben anspannen.',
+          err: 'Hohlkreuz am höchsten Punkt.' },
+        { n: 'Beinpresse mit hoher Fußstellung', g: 'Beinpresse', s: '3 × 10–12 Wdh.', q: 'Beinpresse hohe Fußstellung Gesäß',
+          how: 'Füße hoch und etwas weiter auf die Platte stellen, die Hüfte bleibt unten am Polster.',
+          err: 'Das Becken rollt unten vom Polster ab.' },
+        { n: 'Kabel-Kickbacks', g: 'Kabelzug mit Fußmanschette', s: '3 × 12–15 Wdh. je Seite', q: 'Kabel Kickbacks Gesäß',
+          how: 'Leicht nach vorn gebeugt festhalten, das Bein nach hinten strecken, ohne ins Hohlkreuz zu gehen.',
+          err: 'Das Bein schwingt, statt dass das Gesäß arbeitet.' },
+        { n: 'Abduktoren-Maschine', g: 'Abduktoren-Maschine (Beine nach außen)', s: '3 × 15–20 Wdh.', q: 'Abduktoren Maschine',
+          how: 'Aufrecht sitzen, die Knie kontrolliert nach außen drücken und langsam zurückkommen.',
+          err: 'Mit Schwung gedrückt, ohne Spannung.' }
+      ]
+    },
+    {
+      id: 'waden', label: 'Waden', views: ['front', 'back'],
+      muscles: 'Zwillingswadenmuskel (Gastrocnemius) und Schollenmuskel (Soleus).',
+      ex: [
+        { n: 'Wadenheben stehend', g: 'Wadenheben-Maschine oder Multipresse mit Stufe', s: '4 × 10–15 Wdh.', q: 'Wadenheben stehend',
+          how: 'Fußballen auf der Kante, die Ferse tief absenken, dann so hoch wie möglich auf die Zehen und oben eine Sekunde halten.',
+          err: 'Zu kurzer Bewegungsweg und Schwung.' },
+        { n: 'Wadenheben sitzend', g: 'Sitzende Wadenmaschine', s: '4 × 12–20 Wdh.', q: 'Wadenheben sitzend',
+          how: 'Knie im 90°-Winkel, dabei arbeitet vor allem der Schollenmuskel. Langsam und mit vollem Bewegungsweg.',
+          err: 'Unten nicht tief genug gedehnt.' },
+        { n: 'Wadenheben an der Beinpresse', g: 'Beinpresse', s: '3 × 12–15 Wdh.', q: 'Wadenheben Beinpresse',
+          how: 'Fußballen auf die untere Kante der Platte, Beine fast gestreckt, nur das Fußgelenk bewegt sich.',
+          err: 'Die Knie werden mitbewegt.' }
+      ]
+    }
+  ];
+
+  /* Left-half outlines (x < 120); the right half is mirrored. Viewbox width is 240. */
+  var OUTLINE = [[108,78],[92,84],[72,90],[58,98],[52,114],[46,140],[39,174],[34,194],[29,246],[26,264],[28,284],[37,286],[41,266],[41,248],[53,198],[55,178],[64,150],[76,120],[78,142],[82,172],[85,205],[83,238],[78,262],[73,290],[72,316],[75,345],[77,366],[72,398],[76,430],[82,462],[79,490],[82,502],[102,502],[101,486],[100,462],[107,420],[108,372],[111,340],[114,310]];
+
+  var DELT = [[88,87],[73,90],[59,98],[52,113],[47,134],[46,146],[55,150],[65,144],[71,128],[78,108]];
+  var FOREARM = [[41,180],[54,181],[53,198],[47,224],[40,246],[30,245],[33,222],[36,198],[38,185]];
+  var CALF_FRONT = [[103,380],[92,378],[81,384],[75,400],[77,425],[83,452],[93,460],[100,455],[104,430],[106,400]];
+  var CALF_BACK = [[103,378],[92,375],[80,382],[74,402],[77,428],[84,452],[94,458],[101,452],[105,428],[106,400]];
+
+  var SHAPES = {
+    front: [
+      { id: 'bauch', pts: [[118,152],[102,152],[90,149],[83,144],[83,160],[85,190],[87,222],[94,240],[106,250],[118,254]] },
+      { id: 'quadrizeps', pts: [[116,272],[100,268],[84,266],[76,282],[73,306],[75,338],[79,360],[91,366],[102,362],[108,342],[111,316],[115,292]] },
+      { id: 'waden', pts: CALF_FRONT },
+      { id: 'unterarme', pts: FOREARM },
+      { id: 'bizeps', pts: [[47,152],[56,152],[65,153],[62,166],[56,178],[46,178],[40,173],[43,160]] },
+      { id: 'brust', pts: [[118,94],[98,90],[86,94],[79,104],[77,118],[80,134],[90,146],[104,150],[118,148]] },
+      { id: 'schultern', pts: DELT }
+    ],
+    back: [
+      { id: 'ruecken-oben', pts: [[77,122],[90,118],[104,136],[115,160],[114,184],[104,196],[92,202],[86,196],[83,170],[80,146]] },
+      { id: 'ruecken-unten', pts: [[118,180],[110,184],[100,200],[92,214],[88,232],[100,246],[118,252]] },
+      { id: 'ruecken-oben', pts: [[118,80],[104,80],[92,86],[82,94],[88,108],[102,130],[118,160]] },
+      { id: 'gesaess', pts: [[118,256],[102,251],[86,254],[79,268],[79,288],[89,304],[104,308],[115,298],[116,282]] },
+      { id: 'beinbizeps', pts: [[112,312],[102,314],[86,312],[76,324],[74,346],[77,364],[88,372],[100,368],[107,352],[111,332]] },
+      { id: 'waden', pts: CALF_BACK },
+      { id: 'unterarme', pts: FOREARM },
+      { id: 'trizeps', pts: [[49,142],[58,143],[65,149],[62,166],[56,180],[46,180],[40,174],[44,152]] },
+      { id: 'schultern', pts: DELT }
+    ]
+  };
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.getElementById('body-svg');
+  var chips = document.getElementById('chips');
+  var caption = document.getElementById('caption');
+  var planHead = document.getElementById('plan-head');
+  var grid = document.getElementById('grid');
+  var plan = document.getElementById('plan');
+  var btnFront = document.getElementById('btn-front');
+  var btnBack = document.getElementById('btn-back');
+
+  var state = { view: 'front', id: 'brust' };
+
+  function byId(id) {
+    for (var i = 0; i < REGIONS.length; i++) { if (REGIONS[i].id === id) return REGIONS[i]; }
+    return null;
+  }
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function f(n) { return Math.round(n * 10) / 10; }
+  function mirror(pts) { return pts.map(function (p) { return [240 - p[0], p[1]]; }); }
+
+  /* Closed Catmull-Rom spline converted to cubic Beziers. */
+  function smooth(pts) {
+    var n = pts.length;
+    var d = 'M' + f(pts[0][0]) + ' ' + f(pts[0][1]);
+    for (var i = 0; i < n; i++) {
+      var p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+      var c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      var c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += 'C' + f(c1x) + ' ' + f(c1y) + ' ' + f(c2x) + ' ' + f(c2y) + ' ' + f(p2[0]) + ' ' + f(p2[1]);
+    }
+    return d + 'Z';
+  }
+  function el(name, attrs) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) { e.setAttribute(k, attrs[k]); }
+    return e;
+  }
+
+  function drawBody() {
+    while (svg.firstChild) { svg.removeChild(svg.firstChild); }
+    svg.appendChild(el('ellipse', { cx: 120, cy: 34, rx: 18, ry: 23, 'class': 'base' }));
+    svg.appendChild(el('rect', { x: 108, y: 50, width: 24, height: 34, rx: 6, 'class': 'base' }));
+    var full = OUTLINE.concat([[120, 268]], mirror(OUTLINE).reverse());
+    svg.appendChild(el('path', { d: smooth(full), 'class': 'base' }));
+
+    var groups = {};
+    SHAPES[state.view].forEach(function (shape) {
+      var g = groups[shape.id];
+      if (!g) {
+        var r = byId(shape.id);
+        g = el('g', { 'class': 'region', 'data-id': shape.id, role: 'button', tabindex: 0, 'aria-label': r.label + ' – Trainingsplan anzeigen' });
+        var t = el('title', {});
+        t.textContent = r.label;
+        g.appendChild(t);
+        groups[shape.id] = g;
+        svg.appendChild(g);
+      }
+      g.appendChild(el('path', { d: smooth(shape.pts), 'class': 'm' }));
+      g.appendChild(el('path', { d: smooth(mirror(shape.pts)), 'class': 'm' }));
+    });
+
+    if (state.view === 'front') {
+      var lines = el('path', { 'class': 'decor', d: 'M104 170H118M106 190H118M108 210H118M136 170H122M134 190H122M132 210H122' });
+      svg.appendChild(lines);
+    }
+    applyActive();
+  }
+
+  function applyActive() {
+    var gs = svg.querySelectorAll('.region');
+    for (var i = 0; i < gs.length; i++) {
+      gs[i].classList.toggle('on', gs[i].getAttribute('data-id') === state.id);
+    }
+  }
+
+  function drawChips() {
+    chips.innerHTML = REGIONS.map(function (r) {
+      return '<li><button type="button" data-id="' + r.id + '" aria-pressed="' + (r.id === state.id) + '">' + esc(r.label) + '</button></li>';
+    }).join('');
+  }
+
+  var ICON_PHOTO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="9" cy="10" r="1.8"></circle><path d="M21 16l-5-5-9 9"></path></svg>';
+  var ICON_VIDEO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M10 9.5v5l4.5-2.5z"></path></svg>';
+  var ICON_GEAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7v10M18 7v10M3 9v6M21 9v6M6 12h12"></path></svg>';
+  var ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>';
+  var ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"></path></svg>';
+
+  function f1(n) { return Math.round(n * 10) / 10; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function lerpPt(p1, p2, t) { return [lerp(p1[0], p2[0], t), lerp(p1[1], p2[1], t)]; }
+
+  /* Anatomical capsule limb helper: draws a sculpted human body segment between p1 and p2
+     with start radius r1, middle muscle belly bulge rMid, and end radius r2. */
+  function drawCapsule(p1, p2, r1, r2, fill, stroke, sw) {
+    var dx = p2[0] - p1[0], dy = p2[1] - p1[1];
+    var len = Math.hypot(dx, dy);
+    if (len < 1) return '';
+    var nx = -dy / len, ny = dx / len;
+    var mx = (p1[0] + p2[0]) * 0.5, my = (p1[1] + p2[1]) * 0.5;
+    var rm = Math.max(r1, r2) * 1.18;
+    var a1x = f1(p1[0] + nx * r1), a1y = f1(p1[1] + ny * r1);
+    var a2x = f1(p1[0] - nx * r1), a2y = f1(p1[1] - ny * r1);
+    var b1x = f1(p2[0] + nx * r2), b1y = f1(p2[1] + ny * r2);
+    var b2x = f1(p2[0] - nx * r2), b2y = f1(p2[1] - ny * r2);
+    var c1x = f1(mx + nx * rm), c1y = f1(my + ny * rm);
+    var c2x = f1(mx - nx * rm), c2y = f1(my - ny * rm);
+    return '<path d="M' + a1x + ' ' + a1y +
+      ' Q' + c1x + ' ' + c1y + ' ' + b1x + ' ' + b1y +
+      ' A' + f1(r2) + ' ' + f1(r2) + ' 0 0 1 ' + b2x + ' ' + b2y +
+      ' Q' + c2x + ' ' + c2y + ' ' + a2x + ' ' + a2y +
+      ' A' + f1(r1) + ' ' + f1(r1) + ' 0 0 1 ' + a1x + ' ' + a1y + 'Z" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + (sw || 1.6) + '"/>';
+  }
+
+  /* Detailed exercise definitions for all 46 exercises:
+     Coordinates in a 200 x 175 local stage (floor y = 152).
+     m: active muscle group ('chest', 'delt', 'biceps', 'triceps', 'forearm', 'lats', 'erector', 'abs', 'quads', 'hams', 'glutes', 'calves')
+     lblA: label for Start pose, lblB: label for End pose, cue: key movement cue */
+  var POSES = {
+    'brust-0': {
+      prop: 'flatbench_rack', m: 'chest',
+      lblA: '1. Stange zur Brust senken', lblB: '2. Kraftvoll hochdrücken', cue: 'Schulterblätter fixiert · Unterarme senkrecht',
+      a: { h:[44,96], s:[66,101], e:[74,125], w:[74,92], p:[118,104], k:[154,104], a:[158,148], bar:[74,89], dir:-1 },
+      b: { h:[44,96], s:[66,101], e:[70,78],  w:[70,52], p:[118,104], k:[154,104], a:[158,148], bar:[70,49], dir:-1 }
+    },
+    'brust-1': {
+      prop: 'inclinebench', m: 'chest',
+      lblA: '1. Hanteln auf Brusthöhe', lblB: '2. Nach oben zusammendrücken', cue: '30° Schrägbank · Ellbogen leicht nach vorn',
+      a: { h:[56,70], s:[74,86], e:[80,112], w:[80,80], p:[116,112], k:[152,112], a:[156,148], db:[80,78], dir:-1 },
+      b: { h:[56,70], s:[74,86], e:[78,62],  w:[82,38], p:[116,112], k:[152,112], a:[156,148], db:[82,36], dir:-1 }
+    },
+    'brust-2': {
+      prop: 'seatmachine_press', m: 'chest',
+      lblA: '1. Griffe auf Brusthöhe', lblB: '2. Arme nach vorn strecken', cue: 'Rücken fest am Polster · Schultern tief',
+      a: { h:[74,44], s:[76,66], e:[56,78],  w:[88,74],  p:[78,106], k:[116,108], a:[120,148], mach:[88,74], dir:1 },
+      b: { h:[74,44], s:[76,66], e:[102,72], w:[132,70], p:[78,106], k:[116,108], a:[120,148], mach:[132,70], dir:1 }
+    },
+    'brust-3': {
+      prop: 'cable_dual', m: 'chest',
+      lblA: '1. Arme weit geöffnet (Dehnung)', lblB: '2. Im Bogen vor der Brust schließen', cue: 'Ellbogen bleiben leicht gebeugt',
+      a: { h:[100,40], s:[80,62], e:[52,72], w:[36,84], p:[100,104], k:[90,128], a:[90,148], sym:true },
+      b: { h:[100,40], s:[80,62], e:[80,78], w:[94,86], p:[100,104], k:[90,128], a:[90,148], sym:true }
+    },
+    'schultern-0': {
+      prop: 'uprightbench', m: 'delt',
+      lblA: '1. Hanteln auf Ohrhöhe', lblB: '2. Über Kopf zusammendrücken', cue: 'Rumpf stabil an der Lehne · Kein Hohlkreuz',
+      a: { h:[100,48], s:[78,68], e:[58,78], w:[62,52], p:[100,108], k:[90,130], a:[90,148], sym:true, db:true },
+      b: { h:[100,48], s:[78,68], e:[80,42], w:[88,18], p:[100,108], k:[90,130], a:[90,148], sym:true, db:true }
+    },
+    'schultern-1': {
+      prop: 'stand', m: 'delt',
+      lblA: '1. Hanteln seitlich am Körper', lblB: '2. Bis auf Schulterhöhe heben', cue: 'Ellbogen leicht gebeugt · Ohne Schwung',
+      a: { h:[100,36], s:[80,56], e:[76,82], w:[78,104], p:[100,98], k:[90,124], a:[90,148], sym:true, db:true },
+      b: { h:[100,36], s:[80,56], e:[54,58], w:[30,62],  p:[100,98], k:[90,124], a:[90,148], sym:true, db:true }
+    },
+    'schultern-2': {
+      prop: 'cable_high', m: 'delt',
+      lblA: '1. Arme gestreckt zum Kabel', lblB: '2. Seil Richtung Stirn ziehen', cue: 'Ellbogen hoch und weit nach außen',
+      a: { h:[76,42], s:[78,64], e:[108,64], w:[138,60], p:[74,102], k:[80,126], a:[76,148], cable:[168,54], dir:1 },
+      b: { h:[70,42], s:[72,64], e:[58,56],  w:[72,44],  p:[74,102], k:[80,126], a:[76,148], cable:[168,54], dir:1 }
+    },
+    'schultern-3': {
+      prop: 'seatmachine_rev', m: 'delt',
+      lblA: '1. Brust am Polster, Griffe vorn', lblB: '2. Arme weit nach hinten öffnen', cue: 'Schulterblätter am Ende zusammenziehen',
+      a: { h:[106,42], s:[104,64], e:[132,68], w:[156,68], p:[102,106], k:[126,112], a:[126,148], dir:1 },
+      b: { h:[106,42], s:[104,64], e:[82,66],  w:[62,70],  p:[102,106], k:[126,112], a:[126,148], dir:1 }
+    },
+    'bizeps-0': {
+      prop: 'stand', m: 'biceps',
+      lblA: '1. Arm fast gestreckt unten', lblB: '2. Hantel hochbeugen & eindrehen', cue: 'Ellbogen bleibt fest an der Seite',
+      a: { h:[96,36], s:[94,58], e:[92,86], w:[98,112],  p:[92,100], k:[96,126], a:[94,148], db:[98,112], dir:1 },
+      b: { h:[96,36], s:[94,58], e:[94,86], w:[118,62],  p:[92,100], k:[96,126], a:[94,148], db:[118,62], dir:1 }
+    },
+    'bizeps-1': {
+      prop: 'stand', m: 'biceps',
+      lblA: '1. SZ-Stange vor den Oberschenkeln', lblB: '2. Bis auf Schulterhöhe beugen', cue: 'Oberarme ruhig · Kein Schwung aus der Hüfte',
+      a: { h:[96,36], s:[94,58], e:[93,86], w:[102,110], p:[92,100], k:[96,126], a:[94,148], bar:[102,110], dir:1 },
+      b: { h:[96,36], s:[94,58], e:[96,84], w:[120,60],  p:[92,100], k:[96,126], a:[94,148], bar:[120,60], dir:1 }
+    },
+    'bizeps-2': {
+      prop: 'preacher', m: 'biceps',
+      lblA: '1. Oberarme flach auf dem Polster', lblB: '2. Kontrolliert nach oben curlen', cue: 'Polster verhindert jedes Abfälschen',
+      a: { h:[70,48], s:[78,68], e:[106,82], w:[134,96], p:[68,108], k:[96,116], a:[96,148], bar:[134,96], dir:1 },
+      b: { h:[70,48], s:[78,68], e:[106,82], w:[110,54], p:[68,108], k:[96,116], a:[96,148], bar:[110,54], dir:1 }
+    },
+    'bizeps-3': {
+      prop: 'stand', m: 'biceps',
+      lblA: '1. Neutraler Griff (Daumen vorn)', lblB: '2. Daumen zeigt beim Heben hoch', cue: 'Handgelenke bleiben fest und gerade',
+      a: { h:[96,36], s:[94,58], e:[92,86], w:[98,112],  p:[92,100], k:[96,126], a:[94,148], db:[98,112], dir:1 },
+      b: { h:[96,36], s:[94,58], e:[94,86], w:[120,66],  p:[92,100], k:[96,126], a:[94,148], db:[120,66], dir:1 }
+    },
+    'trizeps-0': {
+      prop: 'cable_high', m: 'triceps',
+      lblA: '1. Unterarme angewinkelt (90°)', lblB: '2. Nach unten komplett durchstrecken', cue: 'Ellbogen eng am Rippenbogen fixiert',
+      a: { h:[84,38], s:[82,60], e:[84,86], w:[112,68],  p:[78,100], k:[82,126], a:[80,148], cable:[146,20], dir:1 },
+      b: { h:[84,38], s:[82,60], e:[84,86], w:[94,112],  p:[78,100], k:[82,126], a:[80,148], cable:[146,20], dir:1 }
+    },
+    'trizeps-1': {
+      prop: 'dipbars', m: 'triceps',
+      lblA: '1. Im Stütz mit gestreckten Armen', lblB: '2. Bis 90° im Ellbogen absenken', cue: 'Oberkörper aufrecht · Ellbogen eng',
+      a: { h:[104,32], s:[100,52], e:[96,74],  w:[98,96], p:[98,92],  k:[94,120], a:[84,136], dir:1 },
+      b: { h:[106,50], s:[102,70], e:[82,72],  w:[98,96], p:[98,110], k:[94,134], a:[84,146], dir:1 }
+    },
+    'trizeps-2': {
+      prop: 'stand', m: 'triceps',
+      lblA: '1. Gewicht hinter den Kopf senken', lblB: '2. Arme nach oben strecken', cue: 'Ellbogen zeigen nach oben und bleiben eng',
+      a: { h:[102,42], s:[98,62], e:[104,34], w:[82,52],  p:[98,100], k:[100,126], a:[98,148], db:[82,52], dir:1 },
+      b: { h:[102,42], s:[98,62], e:[104,34], w:[106,12], p:[98,100], k:[100,126], a:[98,148], db:[106,12], dir:1 }
+    },
+    'trizeps-3': {
+      prop: 'flatbench_rack', m: 'triceps',
+      lblA: '1. Enger Griff zur unteren Brust', lblB: '2. Aus dem Trizeps hochdrücken', cue: 'Ellbogen streifen eng am Körper entlang',
+      a: { h:[44,96], s:[66,101], e:[80,120], w:[80,92], p:[118,104], k:[154,104], a:[158,148], bar:[80,89], dir:-1 },
+      b: { h:[44,96], s:[66,101], e:[72,78],  w:[72,52], p:[118,104], k:[154,104], a:[158,148], bar:[72,49], dir:-1 }
+    },
+    'unterarme-0': {
+      prop: 'preacher', m: 'forearm',
+      lblA: '1. Handgelenk kontrolliert öffnen', lblB: '2. Aus dem Handgelenk einrollen', cue: 'Unterarm bleibt komplett ruhig auf der Bank',
+      a: { h:[70,52], s:[76,72], e:[100,90], w:[128,92], p:[68,108], k:[98,114], a:[98,148], db:[136,100], dir:1 },
+      b: { h:[70,52], s:[76,72], e:[100,90], w:[128,88], p:[68,108], k:[98,114], a:[98,148], db:[134,78], dir:1 }
+    },
+    'unterarme-1': {
+      prop: 'stand', m: 'forearm',
+      lblA: '1. Stange im Obergriff unten', lblB: '2. Mit geradem Handgelenk heben', cue: 'Handrücken zeigt nach oben · Ellbogen fixiert',
+      a: { h:[96,36], s:[94,58], e:[92,86], w:[100,110], p:[92,100], k:[96,126], a:[94,148], bar:[100,110], dir:1 },
+      b: { h:[96,36], s:[94,58], e:[94,86], w:[118,64],  p:[92,100], k:[96,126], a:[94,148], bar:[118,64], dir:1 }
+    },
+    'unterarme-2': {
+      prop: 'stand', m: 'forearm',
+      lblA: '1. Aufrechter Stand, Hanteln fest', lblB: '2. Ruhige, kontrollierte Schritte', cue: 'Schultern aktiv nach hinten-unten ziehen',
+      a: { h:[86,36],  s:[84,58],  e:[82,84],  w:[84,106],  p:[84,98],  k:[72,124],  a:[64,148],  k2:[94,124],  a2:[102,148], db:[84,108], dir:1 },
+      b: { h:[114,36], s:[112,58], e:[110,84], w:[112,106], p:[112,98], k:[124,124], a:[132,148], k2:[102,124], a2:[94,148],  db:[112,108], dir:1 }
+    },
+    'ruecken-oben-0': {
+      prop: 'latmachine', m: 'lats',
+      lblA: '1. Arme oben gestreckt (Dehnung)', lblB: '2. Stange zur oberen Brust ziehen', cue: 'Brust stolz anheben · Ellbogen nach unten',
+      a: { h:[96,54], s:[96,76], e:[104,48], w:[108,24], p:[96,112], k:[128,114], a:[128,148], cable:[108,14], dir:1 },
+      b: { h:[92,56], s:[94,78], e:[84,98],  w:[106,74], p:[96,112], k:[128,114], a:[128,148], cable:[108,14], dir:1 }
+    },
+    'ruecken-oben-1': {
+      prop: 'rowmachine', m: 'lats',
+      lblA: '1. Arme vorn, Schulterblätter weit', lblB: '2. Griff zum Bauchnabel ziehen', cue: 'Aufrechter Rücken · Schulterblätter zusammen',
+      a: { h:[72,50], s:[72,72], e:[102,82], w:[130,86], p:[68,112], k:[110,110], a:[146,116], cable:[168,86], dir:1 },
+      b: { h:[64,50], s:[66,72], e:[52,88],  w:[76,88],  p:[68,112], k:[110,110], a:[146,116], cable:[168,86], dir:1 }
+    },
+    'ruecken-oben-2': {
+      prop: 'flatbench', m: 'lats',
+      lblA: '1. Hantel hängt senkrecht unten', lblB: '2. Ellbogen eng zur Hüfte ziehen', cue: 'Rücken parallel zur Bank · Nicht aufdrehen',
+      a: { h:[136,64], s:[116,70], e:[114,98], w:[114,124], p:[68,76], k:[72,112], a:[54,148], db:[114,126], dir:1 },
+      b: { h:[136,64], s:[116,70], e:[98,58],  w:[106,86],  p:[68,76], k:[72,112], a:[54,148], db:[106,88], dir:1 }
+    },
+    'ruecken-oben-3': {
+      prop: 'pullupbar', m: 'lats',
+      lblA: '1. Aushängen mit aktiven Schultern', lblB: '2. Brust bis zur Stange hochziehen', cue: 'Schulterblätter zuerst nach unten ziehen',
+      a: { h:[100,56], s:[82,76], e:[68,52], w:[64,26], p:[100,114], k:[92,136], a:[92,148], sym:true },
+      b: { h:[100,28], s:[82,48], e:[60,56], w:[64,26], p:[100,86],  k:[92,112], a:[92,128], sym:true }
+    },
+    'ruecken-oben-4': {
+      prop: 'stand', m: 'lats',
+      lblA: '1. Schultern tief hängen lassen', lblB: '2. Gerade zu den Ohren hochziehen', cue: 'Arme bleiben gestreckt · Oben 1 Sek. halten',
+      a: { h:[100,36], s:[80,62], e:[78,86], w:[80,108], p:[100,98], k:[90,124], a:[90,148], sym:true, db:true },
+      b: { h:[100,36], s:[80,48], e:[78,72], w:[80,94],  p:[100,98], k:[90,124], a:[90,148], sym:true, db:true }
+    },
+    'ruecken-unten-0': {
+      prop: 'hyperbench', m: 'erector',
+      lblA: '1. Oberkörper gebeugt absenken', lblB: '2. Bis in die Körperlinie aufrichten', cue: 'Nicht über die Gerade hinaus ins Hohlkreuz',
+      a: { h:[146,104], s:[130,92], e:[124,106], w:[134,96], p:[94,88], k:[64,112], a:[38,136], dir:1 },
+      b: { h:[148,52],  s:[130,66], e:[122,78],  w:[136,64], p:[94,88], k:[64,112], a:[38,136], dir:1 }
+    },
+    'ruecken-unten-1': {
+      prop: 'seatmachine_rev', m: 'erector',
+      lblA: '1. Kontrolliert nach vorn neigen', lblB: '2. Rücken gegen die Rolle aufrichten', cue: 'Bewegung ruhig aus dem unteren Rücken',
+      a: { h:[112,54], s:[102,74], e:[104,92], w:[114,84], p:[78,108], k:[114,112], a:[116,148], dir:1 },
+      b: { h:[64,46],  s:[70,70],  e:[78,88],  w:[88,80],  p:[78,108], k:[114,112], a:[116,148], dir:1 }
+    },
+    'ruecken-unten-2': {
+      prop: 'mat', m: 'erector',
+      lblA: '1. Bauchlage auf der Matte', lblB: '2. Brust und Beine leicht anheben', cue: 'Blick bleibt zum Boden (Nacken lang)',
+      a: { h:[146,136], s:[126,140], e:[154,142], w:[176,142], p:[84,142], k:[52,144], a:[24,144], dir:1 },
+      b: { h:[148,118], s:[126,130], e:[156,120], w:[180,112], p:[84,142], k:[52,130], a:[22,118], dir:1 }
+    },
+    'ruecken-unten-3': {
+      prop: 'stand', m: 'erector',
+      lblA: '1. Hüfte tief, Rücken komplett gerade', lblB: '2. Aus Beinen & Hüfte aufrichten', cue: 'Stange gleitet ganz dicht an den Schienbeinen',
+      a: { h:[126,64], s:[108,76], e:[108,104], w:[108,128], p:[66,98], k:[98,122], a:[100,148], bar:[108,130], dir:1 },
+      b: { h:[98,36],  s:[96,58],  e:[96,84],   w:[98,106],  p:[96,98], k:[98,124], a:[98,148],  bar:[98,108], dir:1 }
+    },
+    'bauch-0': {
+      prop: 'cable_high', m: 'abs',
+      lblA: '1. Kniend, Seil neben dem Kopf', lblB: '2. Wirbelsäule aktiv einrollen', cue: 'Hüfte bleibt still · Bauch rollt den Rumpf ein',
+      a: { h:[100,66], s:[94,84],  e:[110,78],  w:[108,62], p:[70,116], k:[76,146], a:[48,148], cable:[132,20], dir:1 },
+      b: { h:[110,98], s:[102,102], e:[98,118], w:[110,98], p:[68,116], k:[76,146], a:[48,148], cable:[132,20], dir:1 }
+    },
+    'bauch-1': {
+      prop: 'pullupbar', m: 'abs',
+      lblA: '1. Ruhig hängen, Rumpf gespannt', lblB: '2. Knie/Beine hochheben & Becken kippen', cue: 'Becken am oberen Punkt leicht einrollen',
+      a: { h:[98,42], s:[96,62], e:[96,42], w:[96,26], p:[96,98],  k:[98,124],  a:[96,146], dir:1 },
+      b: { h:[98,42], s:[96,62], e:[96,42], w:[96,26], p:[100,94], k:[132,90],  a:[158,94], dir:1 }
+    },
+    'bauch-2': {
+      prop: 'mat', m: 'abs',
+      lblA: '1. Ellbogen senkrecht unter Schultern', lblB: '2. Körper bildet ein festes Brett', cue: 'Bauch und Gesäß durchgehend fest anspannen',
+      a: { h:[150,108], s:[130,112], e:[130,142], w:[150,142], p:[84,120], k:[50,130], a:[22,142], dir:1 },
+      b: { h:[150,108], s:[130,112], e:[130,142], w:[150,142], p:[84,120], k:[50,130], a:[22,142], dir:1 }
+    },
+    'bauch-3': {
+      prop: 'seatmachine_press', m: 'abs',
+      lblA: '1. Aufrecht im Sitz starten', lblB: '2. Oberkörper rund nach vorn rollen', cue: 'Beim Einrollen kräftig ausatmen',
+      a: { h:[76,44], s:[76,68], e:[88,78],  w:[86,62], p:[76,108], k:[112,112], a:[114,148], dir:1 },
+      b: { h:[100,66], s:[92,82], e:[100,94], w:[104,76], p:[76,108], k:[112,112], a:[114,148], dir:1 }
+    },
+    'quadrizeps-0': {
+      prop: 'squatrack', m: 'quads',
+      lblA: '1. Aufrechter Stand unter der Stange', lblB: '2. Tief beugen bis Oberschenkel parallel', cue: 'Rücken gerade · Fersen fest am Boden',
+      a: { h:[100,34], s:[96,56], e:[86,68], w:[92,54], p:[94,96],  k:[100,124], a:[96,148], bar:[94,54], dir:1 },
+      b: { h:[106,66], s:[102,86], e:[90,96], w:[98,84], p:[66,116], k:[112,116], a:[96,148], bar:[100,84], dir:1 }
+    },
+    'quadrizeps-1': {
+      prop: 'legpress', m: 'quads',
+      lblA: '1. Knie gebeugt zur Brust senken', lblB: '2. Platte hochdrücken (nicht einrasten)', cue: 'Unterer Rücken bleibt fest im Polster',
+      a: { h:[44,102], s:[56,114], e:[66,124], w:[74,120], p:[80,126], k:[92,90],  a:[124,74], sled:[128,72], dir:1 },
+      b: { h:[44,102], s:[56,114], e:[66,124], w:[74,120], p:[80,126], k:[116,94], a:[152,60], sled:[156,58], dir:1 }
+    },
+    'quadrizeps-2': {
+      prop: 'legext', m: 'quads',
+      lblA: '1. Unterschenkel hängen im 90°-Winkel', lblB: '2. Knie kontrolliert ganz strecken', cue: 'Oben 1 Sekunde Spannung im Oberschenkel halten',
+      a: { h:[72,44], s:[74,66], e:[76,88], w:[82,104], p:[76,106], k:[114,106], a:[112,144], pad:[116,140], dir:1 },
+      b: { h:[72,44], s:[74,66], e:[76,88], w:[82,104], p:[76,106], k:[114,106], a:[154,104], pad:[152,108], dir:1 }
+    },
+    'quadrizeps-3': {
+      prop: 'stand', m: 'quads',
+      lblA: '1. Weiter Ausfallschritt, Rumpf aufrecht', lblB: '2. Hinteres Knie Richtung Boden senken', cue: 'Vorderes Knie bleibt stabil über dem Fuß',
+      a: { h:[100,34], s:[98,56], e:[96,82],  w:[98,104], p:[98,96],  k:[114,124], a:[128,148], k2:[82,124], a2:[66,148], db:[98,104], dir:1 },
+      b: { h:[100,56], s:[98,78], e:[96,104], w:[98,124], p:[98,116], k:[130,116], a:[130,148], k2:[74,142], a2:[50,148], db:[98,124], dir:1 }
+    },
+    'beinbizeps-0': {
+      prop: 'stand', m: 'hams',
+      lblA: '1. Aufrechter Stand mit Hantel', lblB: '2. Hüfte weit zurückschieben (Dehnung)', cue: 'Rücken gerade · Knie nur minimal gebeugt',
+      a: { h:[98,36],  s:[96,58],  e:[96,84],   w:[98,106],  p:[94,96], k:[98,124], a:[96,148], bar:[98,108], dir:1 },
+      b: { h:[136,72], s:[118,80], e:[114,106], w:[110,126], p:[66,92], k:[88,124], a:[96,148], bar:[110,128], dir:1 }
+    },
+    'beinbizeps-1': {
+      prop: 'legcurl_lie', m: 'hams',
+      lblA: '1. Beine gestreckt unter der Rolle', lblB: '2. Fersen kraftvoll zum Gesäß beugen', cue: 'Hüfte bleibt fest auf die Bank gedrückt',
+      a: { h:[150,102], s:[130,106], e:[138,124], w:[154,122], p:[88,106], k:[50,110], a:[16,114], pad:[20,110], dir:1 },
+      b: { h:[150,102], s:[130,106], e:[138,124], w:[154,122], p:[88,106], k:[50,110], a:[60,74],  pad:[62,78], dir:1 }
+    },
+    'beinbizeps-2': {
+      prop: 'legext', m: 'hams',
+      lblA: '1. Beine vorn auf der Fußrolle', lblB: '2. Fersen weit unter den Sitz ziehen', cue: 'Rücken fest an der Lehne · Oberschenkel fixiert',
+      a: { h:[72,44], s:[74,66], e:[86,84], w:[102,90], p:[76,106], k:[114,106], a:[154,104], pad:[150,108], dir:1 },
+      b: { h:[72,44], s:[74,66], e:[86,84], w:[102,90], p:[76,106], k:[114,106], a:[106,144], pad:[104,140], dir:1 }
+    },
+    'gesaess-0': {
+      prop: 'hipthrust', m: 'glutes',
+      lblA: '1. Schultern auf Bank, Hüfte tief', lblB: '2. Hüfte bis zur Waagrechten strecken', cue: 'Oben Gesäß fest anspannen · Schienbeine senkrecht',
+      a: { h:[46,90], s:[62,102], e:[80,112], w:[96,118], p:[100,132], k:[136,106], a:[142,148], bar:[100,124], dir:1 },
+      b: { h:[50,82], s:[64,96],  e:[82,100], w:[100,98], p:[102,100], k:[138,102], a:[142,148], bar:[102,94], dir:1 }
+    },
+    'gesaess-1': {
+      prop: 'legpress', m: 'glutes',
+      lblA: '1. Füße weit oben auf der Platte', lblB: '2. Über die Fersen kräftig wegdrücken', cue: 'Hohe Fußstellung verlagert Fokus auf das Gesäß',
+      a: { h:[44,102], s:[56,114], e:[66,124], w:[74,120], p:[80,126], k:[88,82],  a:[118,60], sled:[128,72], dir:1 },
+      b: { h:[44,102], s:[56,114], e:[66,124], w:[74,120], p:[80,126], k:[112,86], a:[146,46], sled:[156,58], dir:1 }
+    },
+    'gesaess-2': {
+      prop: 'cable_low', m: 'glutes',
+      lblA: '1. Fuß mit Manschette vorn am Turm', lblB: '2. Bein gestreckt nach hinten führen', cue: 'Bewegung nur aus der Hüfte · Kein Hohlkreuz',
+      a: { h:[118,46], s:[108,64], e:[126,80], w:[144,84], p:[88,96], k:[96,124], a:[100,148], k2:[88,124], a2:[92,148], cable:[152,144], dir:1 },
+      b: { h:[118,46], s:[108,64], e:[126,80], w:[144,84], p:[88,96], k:[58,114], a:[30,124],  k2:[96,124], a2:[100,148], cable:[152,144], dir:1 }
+    },
+    'gesaess-3': {
+      prop: 'abductor', m: 'glutes',
+      lblA: '1. Knie innen an den Beinpolstern', lblB: '2. Knie weit nach außen drücken', cue: 'Aufrecht sitzen und außen kurz halten',
+      a: { h:[100,42], s:[82,64], e:[78,86], w:[80,104], p:[100,104], k:[92,122], a:[92,148], sym:true },
+      b: { h:[100,42], s:[82,64], e:[78,86], w:[80,104], p:[100,104], k:[62,120], a:[68,148], sym:true }
+    },
+    'waden-0': {
+      prop: 'calfblock', m: 'calves',
+      lblA: '1. Fersen tief unter die Kante senken', lblB: '2. Maximal hoch auf die Zehenspitzen', cue: 'Knie bleiben gestreckt · Voller Bewegungsweg',
+      a: { h:[100,38], s:[98,60], e:[94,82], w:[98,100], p:[98,98], k:[98,124], a:[94,148], dir:1 },
+      b: { h:[100,24], s:[98,46], e:[94,68], w:[98,86],  p:[98,84], k:[98,110], a:[102,132], dir:1 }
+    },
+    'waden-1': {
+      prop: 'seatcalf', m: 'calves',
+      lblA: '1. Knie unter Polster, Ferse tief', lblB: '2. Kniepolster mit den Fußballen heben', cue: 'Trainiert gezielt den tiefen Schollenmuskel',
+      a: { h:[72,44], s:[74,66], e:[86,86], w:[106,94], p:[74,108], k:[116,108], a:[114,148], pad:[116,100], dir:1 },
+      b: { h:[72,44], s:[74,66], e:[86,86], w:[106,94], p:[74,108], k:[116,96],  a:[118,132], pad:[116,88], dir:1 }
+    },
+    'waden-2': {
+      prop: 'legpress', m: 'calves',
+      lblA: '1. Fußballen an der unteren Plattenkante', lblB: '2. Platte nur aus dem Sprunggelenk drücken', cue: 'Beine fast gestreckt · Nur Fußgelenk bewegt sich',
+      a: { h:[44,102], s:[56,114], e:[66,124], w:[74,120], p:[80,126], k:[114,96], a:[146,68], sled:[148,66], dir:1 },
+      b: { h:[44,102], s:[56,114], e:[66,124], w:[74,120], p:[80,126], k:[114,96], a:[158,60], sled:[160,58], dir:1 }
+    }
+  };
+
+  function interpPose(pa, pb, t) {
+    var out = {};
+    var keys = ['h', 's', 'e', 'w', 'p', 'k', 'a', 'k2', 'a2', 'bar', 'db', 'mach', 'cable', 'sled', 'pad'];
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      if (pa[k] && pb[k] && Array.isArray(pa[k])) out[k] = lerpPt(pa[k], pb[k], t);
+      else if (pa[k] !== undefined) out[k] = pa[k];
+    }
+    out.sym = pa.sym;
+    out.dir = pa.dir;
+    return out;
+  }
+
+  /* Renders clean studio equipment in a 200x175 viewport */
+  function renderPropSVG(prop, pose) {
+    var frame = 'stroke="var(--muscle-line)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+    var pad = 'fill="var(--ink-2)" stroke="var(--ink)" stroke-width="1.2"';
+    var stack = 'fill="var(--body)" stroke="var(--muscle-line)" stroke-width="1.5"';
+    var s = '<line x1="12" y1="150" x2="188" y2="150" stroke="var(--line)" stroke-width="2"/>';
+
+    if (prop === 'flatbench_rack' || prop === 'flatbench') {
+      s += '<line x1="48" y1="112" x2="48" y2="150" ' + frame + '/><line x1="116" y1="112" x2="116" y2="150" ' + frame + '/>';
+      s += '<rect x="34" y="105" width="94" height="8" rx="4" ' + pad + '/>';
+      if (prop === 'flatbench_rack') {
+        s += '<line x1="56" y1="42" x2="56" y2="150" ' + frame + '/>';
+        s += '<path d="M56 76 L64 76 L64 70" ' + frame + '/>';
+      }
+    } else if (prop === 'inclinebench') {
+      s += '<line x1="68" y1="92" x2="68" y2="150" ' + frame + '/><line x1="118" y1="118" x2="118" y2="150" ' + frame + '/>';
+      s += '<line x1="42" y1="68" x2="108" y2="114" stroke="var(--ink-2)" stroke-width="8" stroke-linecap="round"/>';
+      s += '<rect x="104" y="110" width="28" height="8" rx="4" ' + pad + '/>';
+    } else if (prop === 'uprightbench') {
+      s += '<rect x="78" y="110" width="44" height="8" rx="4" ' + pad + '/>';
+      s += '<line x1="100" y1="118" x2="100" y2="150" ' + frame + '/>';
+    } else if (prop === 'seatmachine_press' || prop === 'seatmachine_rev' || prop === 'legext' || prop === 'seatcalf') {
+      s += '<line x1="64" y1="44" x2="68" y2="110" stroke="var(--ink-2)" stroke-width="7" stroke-linecap="round"/>';
+      s += '<rect x="66" y="106" width="50" height="8" rx="4" ' + pad + '/>';
+      s += '<line x1="88" y1="114" x2="88" y2="150" ' + frame + '/>';
+      s += '<rect x="156" y="30" width="20" height="120" rx="3" ' + stack + '/>';
+      for (var wy = 44; wy <= 104; wy += 12) {
+        s += '<line x1="159" y1="' + wy + '" x2="173" y2="' + wy + '" stroke="var(--muscle-line)" stroke-width="2"/>';
+      }
+      if (prop === 'seatmachine_press' && pose && pose.mach) {
+        s += '<line x1="110" y1="30" x2="' + f1(pose.mach[0]) + '" y2="' + f1(pose.mach[1]) + '" ' + frame + '/>';
+      }
+    } else if (prop === 'cable_dual') {
+      s += '<rect x="14" y="22" width="14" height="128" rx="2" ' + stack + '/>';
+      s += '<rect x="172" y="22" width="14" height="128" rx="2" ' + stack + '/>';
+      if (pose && pose.w) {
+        s += '<line x1="28" y1="46" x2="' + f1(pose.w[0]) + '" y2="' + f1(pose.w[1]) + '" stroke="var(--ink-2)" stroke-width="1.8" stroke-dasharray="3,2"/>';
+        s += '<line x1="172" y1="46" x2="' + f1(200 - pose.w[0]) + '" y2="' + f1(pose.w[1]) + '" stroke="var(--ink-2)" stroke-width="1.8" stroke-dasharray="3,2"/>';
+      }
+    } else if (prop === 'cable_high' || prop === 'cable_low') {
+      s += '<rect x="160" y="16" width="18" height="134" rx="2" ' + stack + '/>';
+      for (var wy2 = 34; wy2 <= 94; wy2 += 12) {
+        s += '<line x1="163" y1="' + wy2 + '" x2="175" y2="' + wy2 + '" stroke="var(--muscle-line)" stroke-width="2"/>';
+      }
+      if (pose && pose.w && pose.cable) {
+        s += '<circle cx="' + f1(pose.cable[0]) + '" cy="' + f1(pose.cable[1]) + '" r="4" fill="var(--accent)"/>';
+        s += '<line x1="' + f1(pose.cable[0]) + '" y1="' + f1(pose.cable[1]) + '" x2="' + f1(pose.w[0]) + '" y2="' + f1(pose.w[1]) + '" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3,2"/>';
+      }
+    } else if (prop === 'preacher') {
+      s += '<rect x="54" y="108" width="32" height="8" rx="4" ' + pad + '/>';
+      s += '<line x1="70" y1="116" x2="70" y2="150" ' + frame + '/>';
+      s += '<line x1="88" y1="72" x2="116" y2="96" stroke="var(--ink-2)" stroke-width="8" stroke-linecap="round"/>';
+      s += '<line x1="104" y1="86" x2="104" y2="150" ' + frame + '/>';
+    } else if (prop === 'dipbars') {
+      s += '<line x1="84" y1="94" x2="84" y2="150" ' + frame + '/><line x1="122" y1="94" x2="122" y2="150" ' + frame + '/>';
+      s += '<line x1="76" y1="94" x2="130" y2="94" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>';
+    } else if (prop === 'latmachine') {
+      s += '<rect x="80" y="112" width="44" height="8" rx="4" ' + pad + '/>';
+      s += '<circle cx="116" cy="104" r="5" fill="var(--ink-2)"/>';
+      s += '<line x1="102" y1="120" x2="102" y2="150" ' + frame + '/>';
+      s += '<line x1="108" y1="14" x2="162" y2="14" ' + frame + '/><rect x="152" y="14" width="18" height="136" rx="2" ' + stack + '/>';
+      if (pose && pose.w) {
+        s += '<line x1="108" y1="14" x2="' + f1(pose.w[0]) + '" y2="' + f1(pose.w[1]) + '" stroke="var(--ink)" stroke-width="2"/>';
+        s += '<line x1="' + f1(pose.w[0] - 18) + '" y1="' + f1(pose.w[1]) + '" x2="' + f1(pose.w[0] + 18) + '" y2="' + f1(pose.w[1]) + '" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>';
+      }
+    } else if (prop === 'rowmachine') {
+      s += '<rect x="52" y="112" width="76" height="8" rx="4" ' + pad + '/>';
+      s += '<line x1="70" y1="120" x2="70" y2="150" ' + frame + '/><line x1="116" y1="120" x2="116" y2="150" ' + frame + '/>';
+      s += '<rect x="162" y="26" width="18" height="124" rx="2" ' + stack + '/>';
+      if (pose && pose.w) {
+        s += '<line x1="162" y1="86" x2="' + f1(pose.w[0]) + '" y2="' + f1(pose.w[1]) + '" stroke="var(--ink)" stroke-width="2"/>';
+      }
+    } else if (prop === 'pullupbar') {
+      s += '<line x1="54" y1="22" x2="54" y2="150" ' + frame + '/><line x1="146" y1="22" x2="146" y2="150" ' + frame + '/>';
+      s += '<line x1="48" y1="22" x2="152" y2="22" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>';
+    } else if (prop === 'hyperbench') {
+      s += '<line x1="34" y1="142" x2="104" y2="86" ' + frame + '/>';
+      s += '<circle cx="42" cy="134" r="6" fill="var(--ink-2)"/>';
+      s += '<rect x="84" y="80" width="24" height="12" rx="6" ' + pad + '/>';
+      s += '<line x1="94" y1="92" x2="94" y2="150" ' + frame + '/>';
+    } else if (prop === 'mat') {
+      s += '<rect x="16" y="143" width="168" height="7" rx="3.5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>';
+    } else if (prop === 'squatrack') {
+      s += '<line x1="72" y1="20" x2="72" y2="150" ' + frame + '/><line x1="64" y1="54" x2="78" y2="54" stroke="var(--ink)" stroke-width="4"/>';
+    } else if (prop === 'legpress') {
+      s += '<line x1="32" y1="96" x2="84" y2="134" stroke="var(--ink-2)" stroke-width="8" stroke-linecap="round"/>';
+      s += '<line x1="96" y1="112" x2="178" y2="42" stroke="var(--muscle-line)" stroke-width="3.5"/>';
+      if (pose && pose.sled) {
+        s += '<line x1="' + f1(pose.sled[0] - 12) + '" y1="' + f1(pose.sled[1] - 16) + '" x2="' + f1(pose.sled[0] + 12) + '" y2="' + f1(pose.sled[1] + 16) + '" stroke="var(--ink)" stroke-width="6" stroke-linecap="round"/>';
+      }
+    } else if (prop === 'legcurl_lie') {
+      s += '<rect x="40" y="110" width="114" height="8" rx="4" ' + pad + '/>';
+      s += '<line x1="58" y1="118" x2="58" y2="150" ' + frame + '/><line x1="136" y1="118" x2="136" y2="150" ' + frame + '/>';
+    } else if (prop === 'hipthrust') {
+      s += '<rect x="30" y="94" width="40" height="56" rx="5" ' + pad + '/>';
+    } else if (prop === 'abductor') {
+      s += '<rect x="74" y="102" width="52" height="8" rx="4" ' + pad + '/>';
+      s += '<line x1="100" y1="110" x2="100" y2="150" ' + frame + '/>';
+    } else if (prop === 'calfblock') {
+      s += '<rect x="78" y="138" width="44" height="12" rx="3" ' + pad + '/>';
+    }
+    return s;
+  }
+
+  /* Renders an anatomical human figure with sculpted limbs, head/face orientation, hands, feet, and highlighted target muscles */
+  function renderFigureSVG(pose, spec) {
+    var skin = 'var(--body)';
+    var stroke = 'var(--ink)';
+    var acc = 'var(--accent)';
+    var accSoft = 'var(--accent-soft)';
+    var m = spec.m;
+    var s = '<g>';
+
+    var torsoFill = (m === 'chest' || m === 'lats' || m === 'erector' || m === 'abs') ? acc : skin;
+    var upperArmFill = (m === 'biceps' || m === 'triceps' || m === 'delt') ? acc : skin;
+    var foreArmFill = (m === 'forearm') ? acc : skin;
+    var thighFill = (m === 'quads' || m === 'hams' || m === 'glutes') ? acc : skin;
+    var calfFill = (m === 'calves') ? acc : skin;
+
+    if (pose.sym) {
+      /* Symmetric front/back anatomical view (centered at x = 100) */
+      var sl = pose.s, sr = [200 - sl[0], sl[1]];
+      var el = pose.e, er = [200 - el[0], el[1]];
+      var wl = pose.w, wr = [200 - wl[0], wl[1]];
+      var kl = pose.k, kr = [200 - kl[0], kl[1]];
+      var al = pose.a, ar = [200 - al[0], al[1]];
+      var py = pose.p[1];
+
+      /* Legs: thighs & calves */
+      s += drawCapsule([91, py], kl, 7, 5, thighFill, stroke, 1.5);
+      s += drawCapsule([109, py], kr, 7, 5, thighFill, stroke, 1.5);
+      s += drawCapsule(kl, al, 5, 3.5, calfFill, stroke, 1.5);
+      s += drawCapsule(kr, ar, 5, 3.5, calfFill, stroke, 1.5);
+      /* Shoes */
+      s += '<ellipse cx="' + f1(al[0] - 2) + '" cy="' + f1(al[1] + 2) + '" rx="6" ry="3.5" fill="var(--ink)"/>';
+      s += '<ellipse cx="' + f1(ar[0] + 2) + '" cy="' + f1(ar[1] + 2) + '" rx="6" ry="3.5" fill="var(--ink)"/>';
+
+      /* Sculpted V-taper torso */
+      s += '<path d="M' + f1(sl[0]) + ' ' + f1(sl[1]) + ' L' + f1(sr[0]) + ' ' + f1(sr[1]) + ' L113 ' + f1(py) + ' Q100 ' + f1(py + 6) + ' 87 ' + f1(py) + ' Z" fill="' + torsoFill + '" stroke="' + stroke + '" stroke-width="1.8" stroke-linejoin="round"/>';
+      if (m === 'chest') {
+        s += '<path d="M84 ' + f1(sl[1] + 14) + ' Q92 ' + f1(sl[1] + 20) + ' 100 ' + f1(sl[1] + 14) + ' Q108 ' + f1(sl[1] + 20) + ' 116 ' + f1(sl[1] + 14) + '" fill="none" stroke="var(--surface)" stroke-width="2"/>';
+      }
+
+      /* Deltoid caps + Upper arms + Forearms */
+      s += drawCapsule(sl, el, 5.5, 4.2, upperArmFill, stroke, 1.5);
+      s += drawCapsule(sr, er, 5.5, 4.2, upperArmFill, stroke, 1.5);
+      if (m === 'delt') {
+        s += '<circle cx="' + f1(sl[0]) + '" cy="' + f1(sl[1]) + '" r="6.5" fill="' + acc + '" stroke="' + stroke + '" stroke-width="1.5"/>';
+        s += '<circle cx="' + f1(sr[0]) + '" cy="' + f1(sr[1]) + '" r="6.5" fill="' + acc + '" stroke="' + stroke + '" stroke-width="1.5"/>';
+      }
+      s += drawCapsule(el, wl, 4.2, 3.2, foreArmFill, stroke, 1.5);
+      s += drawCapsule(er, wr, 4.2, 3.2, foreArmFill, stroke, 1.5);
+
+      /* Neck & Head */
+      s += '<line x1="100" y1="' + f1(pose.h[1] + 8) + '" x2="100" y2="' + f1(sl[1]) + '" stroke="' + stroke + '" stroke-width="5"/>';
+      s += '<circle cx="' + f1(pose.h[0]) + '" cy="' + f1(pose.h[1]) + '" r="10.5" fill="var(--surface)" stroke="' + stroke + '" stroke-width="2.2"/>';
+
+      /* Hands & Dumbbells */
+      s += '<circle cx="' + f1(wl[0]) + '" cy="' + f1(wl[1]) + '" r="3.5" fill="var(--surface)" stroke="' + stroke + '" stroke-width="1.5"/>';
+      s += '<circle cx="' + f1(wr[0]) + '" cy="' + f1(wr[1]) + '" r="3.5" fill="var(--surface)" stroke="' + stroke + '" stroke-width="1.5"/>';
+      if (pose.db) {
+        s += '<rect x="' + f1(wl[0] - 9) + '" y="' + f1(wl[1] - 3.5) + '" width="18" height="7" rx="2" fill="var(--ink)"/>';
+        s += '<rect x="' + f1(wr[0] - 9) + '" y="' + f1(wr[1] - 3.5) + '" width="18" height="7" rx="2" fill="var(--ink)"/>';
+      }
+    } else {
+      /* Side / 3-quarter anatomical profile */
+      /* Far leg if split stance */
+      if (pose.k2 && pose.a2) {
+        s += '<g opacity="0.55">';
+        s += drawCapsule(pose.p, pose.k2, 7.5, 5.2, skin, stroke, 1.4);
+        s += drawCapsule(pose.k2, pose.a2, 5.2, 3.5, skin, stroke, 1.4);
+        s += '</g>';
+      }
+
+      /* Pelvis / Glutes */
+      var gluteFill = (m === 'glutes') ? acc : skin;
+      s += '<circle cx="' + f1(pose.p[0]) + '" cy="' + f1(pose.p[1]) + '" r="8.5" fill="' + gluteFill + '" stroke="' + stroke + '" stroke-width="1.6"/>';
+
+      /* Thigh & Calf */
+      s += drawCapsule(pose.p, pose.k, 8.2, 5.5, thighFill, stroke, 1.6);
+      s += drawCapsule(pose.k, pose.a, 5.5, 3.6, calfFill, stroke, 1.6);
+
+      /* Athletic shoe oriented forward */
+      var dir = pose.dir || 1;
+      s += '<path d="M' + f1(pose.a[0] - 4 * dir) + ' ' + f1(pose.a[1] - 2) + ' L' + f1(pose.a[0] + 11 * dir) + ' ' + f1(pose.a[1] + 1) + ' L' + f1(pose.a[0] + 11 * dir) + ' ' + f1(pose.a[1] + 5) + ' L' + f1(pose.a[0] - 5 * dir) + ' ' + f1(pose.a[1] + 5) + ' Z" fill="var(--ink)"/>';
+
+      /* Sculpted ribcage & torso */
+      s += drawCapsule(pose.s, pose.p, 9.2, 7.5, torsoFill, stroke, 1.8);
+
+      /* Neck & Head with nose/gaze indicator */
+      s += '<line x1="' + f1(pose.h[0]) + '" y1="' + f1(pose.h[1]) + '" x2="' + f1(pose.s[0]) + '" y2="' + f1(pose.s[1]) + '" stroke="' + stroke + '" stroke-width="5" stroke-linecap="round"/>';
+      s += '<circle cx="' + f1(pose.h[0]) + '" cy="' + f1(pose.h[1]) + '" r="10" fill="var(--surface)" stroke="' + stroke + '" stroke-width="2.2"/>';
+      s += '<circle cx="' + f1(pose.h[0] + 4 * dir) + '" cy="' + f1(pose.h[1] - 1) + '" r="1.6" fill="var(--ink)"/>';
+
+      /* Shoulder cap, Upper arm, Forearm, Hand */
+      var shFill = (m === 'delt' || m === 'chest') ? acc : skin;
+      s += '<circle cx="' + f1(pose.s[0]) + '" cy="' + f1(pose.s[1]) + '" r="6.2" fill="' + shFill + '" stroke="' + stroke + '" stroke-width="1.5"/>';
+      s += drawCapsule(pose.s, pose.e, 5.8, 4.4, upperArmFill, stroke, 1.6);
+      s += drawCapsule(pose.e, pose.w, 4.4, 3.3, foreArmFill, stroke, 1.6);
+      s += '<circle cx="' + f1(pose.w[0]) + '" cy="' + f1(pose.w[1]) + '" r="3.8" fill="var(--surface)" stroke="' + stroke + '" stroke-width="1.5"/>';
+
+      /* Weights / Pads in hand or on leg */
+      if (pose.bar) {
+        s += '<circle cx="' + f1(pose.bar[0]) + '" cy="' + f1(pose.bar[1]) + '" r="10.5" fill="var(--ink)" stroke="var(--surface)" stroke-width="1.8"/>';
+        s += '<circle cx="' + f1(pose.bar[0]) + '" cy="' + f1(pose.bar[1]) + '" r="3.5" fill="' + acc + '"/>';
+      }
+      if (pose.db && Array.isArray(pose.db)) {
+        s += '<rect x="' + f1(pose.db[0] - 10) + '" y="' + f1(pose.db[1] - 4.5) + '" width="20" height="9" rx="2.5" fill="var(--ink)" stroke="var(--surface)" stroke-width="1"/>';
+      }
+      if (pose.pad) {
+        s += '<circle cx="' + f1(pose.pad[0]) + '" cy="' + f1(pose.pad[1]) + '" r="6.5" fill="' + acc + '" stroke="var(--ink)" stroke-width="1.5"/>';
+      }
+    }
+    s += '</g>';
+    return s;
+  }
+
+  /* Side-by-side (Start vs. End) Exercise Illustration in a 420 x 215 viewBox */
+  function renderExerciseIllustration(key) {
+    var spec = POSES[key] || POSES['brust-0'];
+    var svg = '<svg viewBox="0 0 420 215" role="img" aria-label="Übungsbild: Startposition links, Endposition rechts">';
+    svg += '<defs><marker id="m-arr-' + key + '" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)"/></marker></defs>';
+
+    /* Left Panel: 1. Startposition */
+    svg += '<rect x="6" y="6" width="198" height="178" rx="8" fill="var(--bg)" stroke="var(--line)" stroke-width="1.2"/>';
+    svg += '<rect x="14" y="13" width="182" height="20" rx="4" fill="var(--surface)"/>';
+    svg += '<text x="105" y="27" text-anchor="middle" fill="var(--ink)" font-size="11" font-weight="700">' + esc(spec.lblA) + '</text>';
+    svg += '<g transform="translate(5, 18)">' + renderPropSVG(spec.prop, spec.a) + renderFigureSVG(spec.a, spec) + '</g>';
+
+    /* Center Divider Arrow */
+    svg += '<circle cx="210" cy="95" r="11" fill="var(--accent)"/>';
+    svg += '<path d="M206 95 H213 M210 91 L214 95 L210 99" stroke="var(--accent-ink)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+
+    /* Right Panel: 2. Zielposition + Motion Path */
+    svg += '<rect x="216" y="6" width="198" height="178" rx="8" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.6"/>';
+    svg += '<rect x="224" y="13" width="182" height="20" rx="4" fill="var(--accent-soft)"/>';
+    svg += '<text x="315" y="27" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="700">' + esc(spec.lblB) + '</text>';
+    svg += '<g transform="translate(215, 18)">';
+    svg += renderPropSVG(spec.prop, spec.b);
+    svg += renderFigureSVG(spec.b, spec);
+
+    /* Motion path arrow from Start to End inside Right Panel */
+    var ja = spec.a.w, jb = spec.b.w;
+    if (spec.m === 'quads' || spec.m === 'hams' || spec.m === 'calves') { ja = spec.a.a; jb = spec.b.a; }
+    else if (spec.m === 'erector' || spec.m === 'abs' || spec.m === 'glutes') { ja = spec.a.h; jb = spec.b.h; }
+    if (Math.hypot(jb[0] - ja[0], jb[1] - ja[1]) > 8) {
+      svg += '<line x1="' + f1(ja[0]) + '" y1="' + f1(ja[1]) + '" x2="' + f1(jb[0]) + '" y2="' + f1(jb[1]) + '" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="4,2" marker-end="url(#m-arr-' + key + ')"/>';
+    }
+    svg += '</g>';
+
+    /* Bottom Cue Bar */
+    svg += '<rect x="6" y="190" width="408" height="20" rx="4" fill="var(--accent-soft)"/>';
+    svg += '<circle cx="18" cy="200" r="4.5" fill="var(--accent)"/>';
+    svg += '<text x="28" y="204" fill="var(--ink)" font-size="10.5" font-weight="600">Fokus (farbig markiert): ' + esc(spec.cue) + '</text>';
+    svg += '</svg>';
+    return svg;
+  }
+
+  /* Detailed, labeled technical blueprint for each gym machine / equipment type in 360 x 195 viewBox */
+  function renderGearIllustration(key, gearName) {
+    var spec = POSES[key] || POSES['brust-0'];
+    var p = spec.prop;
+    var svg = '<svg viewBox="0 0 360 195" role="img" aria-label="Geräte-Erklärung: ' + esc(gearName) + '">';
+    svg += '<rect x="6" y="6" width="348" height="183" rx="8" fill="var(--bg)" stroke="var(--line)"/>';
+    svg += '<text x="180" y="24" text-anchor="middle" fill="var(--accent)" font-size="12" font-weight="700">' + esc(gearName) + '</text>';
+
+    var frame = 'stroke="var(--muscle-line)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+    var pad = 'fill="var(--ink-2)" stroke="var(--ink)" stroke-width="1.5"';
+    var acc = 'fill="var(--accent)" stroke="var(--ink)" stroke-width="1.2"';
+    var callout = function (x1, y1, x2, y2, txt, align) {
+      var anchor = align || 'middle';
+      return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="2,2"/>' +
+        '<circle cx="' + x1 + '" cy="' + y1 + '" r="3.5" fill="var(--accent)"/>' +
+        '<text x="' + x2 + '" y="' + (y2 - 4) + '" text-anchor="' + anchor + '" fill="var(--ink)" font-size="10.5" font-weight="600">' + esc(txt) + '</text>';
+    };
+
+    svg += '<line x1="30" y1="162" x2="330" y2="162" stroke="var(--line)" stroke-width="2"/>';
+
+    if (p === 'flatbench_rack' || p === 'flatbench') {
+      svg += '<line x1="95" y1="122" x2="95" y2="162" ' + frame + '/><line x1="215" y1="122" x2="215" y2="162" ' + frame + '/>';
+      svg += '<rect x="75" y="112" width="160" height="12" rx="5" ' + pad + '/>';
+      if (p === 'flatbench_rack') {
+        svg += '<line x1="108" y1="48" x2="108" y2="162" ' + frame + '/>';
+        svg += '<line x1="88" y1="74" x2="262" y2="74" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>';
+        svg += '<rect x="94" y="56" width="10" height="36" rx="2" ' + acc + '/><rect x="246" y="56" width="10" height="36" rx="2" ' + acc + '/>';
+        svg += callout(108, 74, 72, 48, 'Hantel-Ablage (Rack)');
+        svg += callout(180, 74, 210, 48, 'Langhantel + Scheiben');
+      } else {
+        svg += '<rect x="245" y="142" width="36" height="14" rx="3" ' + acc + '/>';
+        svg += callout(263, 142, 265, 118, 'Kurzhantel');
+      }
+      svg += callout(155, 118, 155, 96, 'Flachbank-Polster');
+    } else if (p === 'inclinebench') {
+      svg += '<line x1="115" y1="98" x2="115" y2="162" ' + frame + '/><line x1="205" y1="128" x2="205" y2="162" ' + frame + '/>';
+      svg += '<line x1="85" y1="68" x2="180" y2="124" stroke="var(--ink-2)" stroke-width="11" stroke-linecap="round"/>';
+      svg += '<rect x="176" y="118" width="44" height="10" rx="4" ' + pad + '/>';
+      svg += '<rect x="242" y="138" width="38" height="14" rx="3" ' + acc + '/>';
+      svg += callout(130, 95, 110, 52, 'Rückenlehne (ca. 30° Schräge)');
+      svg += callout(198, 122, 245, 96, 'Sitzpolster');
+      svg += callout(261, 138, 275, 122, 'Kurzhanteln');
+    } else if (p === 'seatmachine_press' || p === 'seatmachine_rev') {
+      svg += '<rect x="235" y="38" width="36" height="124" rx="4" fill="var(--surface)" stroke="var(--muscle-line)" stroke-width="2.5"/>';
+      for (var y = 52; y <= 124; y += 12) svg += '<rect x="240" y="' + y + '" width="26" height="8" rx="1.5" fill="var(--ink-2)"/>';
+      svg += '<line x1="110" y1="52" x2="116" y2="122" stroke="var(--ink-2)" stroke-width="10" stroke-linecap="round"/>';
+      svg += '<rect x="112" y="118" width="54" height="10" rx="4" ' + pad + '/>';
+      svg += '<line x1="138" y1="128" x2="138" y2="162" ' + frame + '/>';
+      svg += '<path d="M165 42 L152 88 L178 88" ' + frame + '/>';
+      svg += '<circle cx="178" cy="88" r="6" ' + acc + '/>';
+      svg += callout(113, 82, 72, 52, 'Rücken-/Brustpolster');
+      svg += callout(178, 88, 178, 62, 'Bewegliche Griffe');
+      svg += callout(253, 76, 305, 52, 'Gewichtsblock');
+    } else if (p === 'cable_dual' || p === 'cable_high' || p === 'cable_low') {
+      svg += '<rect x="70" y="36" width="30" height="126" rx="3" fill="var(--surface)" stroke="var(--muscle-line)" stroke-width="2.5"/>';
+      svg += '<rect x="260" y="36" width="30" height="126" rx="3" fill="var(--surface)" stroke="var(--muscle-line)" stroke-width="2.5"/>';
+      svg += '<line x1="70" y1="38" x2="290" y2="38" ' + frame + '/>';
+      for (var y2 = 52; y2 <= 112; y2 += 12) {
+        svg += '<rect x="75" y="' + y2 + '" width="20" height="8" rx="1" fill="var(--ink-2)"/>';
+        svg += '<rect x="265" y="' + y2 + '" width="20" height="8" rx="1" fill="var(--ink-2)"/>';
+      }
+      var pulleyY = (p === 'cable_low') ? 146 : 48;
+      svg += '<circle cx="106" cy="' + pulleyY + '" r="6" ' + acc + '/>';
+      svg += '<line x1="106" y1="' + pulleyY + '" x2="168" y2="96" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3,2"/>';
+      svg += '<circle cx="168" cy="96" r="6" ' + acc + '/>';
+      svg += callout(106, pulleyY, 145, (p === 'cable_low' ? 125 : 64), 'Verstellbare Umlenkrolle');
+      svg += callout(168, 96, 205, 118, 'Seil- / Handgriff');
+      svg += callout(275, 76, 215, 54, 'Steckgewichte');
+    } else if (p === 'latmachine' || p === 'rowmachine') {
+      svg += '<rect x="235" y="34" width="34" height="128" rx="3" fill="var(--surface)" stroke="var(--muscle-line)" stroke-width="2.5"/>';
+      for (var y3 = 50; y3 <= 122; y3 += 12) svg += '<rect x="240" y="' + y3 + '" width="24" height="8" rx="1" fill="var(--ink-2)"/>';
+      svg += '<rect x="110" y="118" width="60" height="10" rx="4" ' + pad + '/>';
+      svg += '<line x1="140" y1="128" x2="140" y2="162" ' + frame + '/>';
+      if (p === 'latmachine') {
+        svg += '<line x1="138" y1="34" x2="252" y2="34" ' + frame + '/>';
+        svg += '<line x1="138" y1="34" x2="138" y2="62" stroke="var(--ink)" stroke-width="2"/>';
+        svg += '<path d="M98 66 L112 62 L164 62 L178 66" stroke="var(--ink)" stroke-width="4.5" fill="none" stroke-linecap="round"/>';
+        svg += '<circle cx="160" cy="106" r="7" ' + acc + '/>';
+        svg += callout(138, 62, 76, 52, 'Breite Lat-Zugstange');
+        svg += callout(160, 106, 160, 86, 'Beinpolster-Fixierung');
+      } else {
+        svg += '<rect x="195" y="96" width="8" height="28" rx="2" ' + acc + '/>';
+        svg += '<line x1="235" y1="98" x2="168" y2="98" stroke="var(--ink)" stroke-width="2.5"/>';
+        svg += '<circle cx="168" cy="98" r="6" ' + acc + '/>';
+        svg += callout(168, 98, 135, 72, 'Enger Rudergriff (V-Griff)');
+        svg += callout(199, 110, 199, 64, 'Fußstützen');
+      }
+      svg += callout(252, 82, 305, 54, 'Gewichtsturm');
+    } else if (p === 'legpress') {
+      svg += '<line x1="72" y1="104" x2="132" y2="146" stroke="var(--ink-2)" stroke-width="11" stroke-linecap="round"/>';
+      svg += '<line x1="144" y1="132" x2="264" y2="48" stroke="var(--muscle-line)" stroke-width="5"/>';
+      svg += '<line x1="184" y1="74" x2="212" y2="112" stroke="var(--ink)" stroke-width="8" stroke-linecap="round"/>';
+      svg += '<circle cx="212" cy="72" r="14" ' + acc + '/>';
+      svg += callout(98, 122, 82, 76, 'Rücken- & Sitzpolster');
+      svg += callout(196, 92, 152, 54, 'Schräge Fußplatte (45°)');
+      svg += callout(212, 72, 285, 62, 'Gewichtsscheiben');
+    } else if (p === 'legext' || p === 'legcurl_lie' || p === 'seatcalf' || p === 'abductor') {
+      svg += '<line x1="102" y1="54" x2="108" y2="118" stroke="var(--ink-2)" stroke-width="10" stroke-linecap="round"/>';
+      svg += '<rect x="106" y="114" width="64" height="10" rx="4" ' + pad + '/>';
+      svg += '<line x1="136" y1="124" x2="136" y2="162" ' + frame + '/>';
+      svg += '<line x1="168" y1="118" x2="188" y2="148" ' + frame + '/>';
+      svg += '<circle cx="188" cy="148" r="8" ' + acc + '/>';
+      svg += '<rect x="238" y="42" width="32" height="120" rx="3" fill="var(--surface)" stroke="var(--muscle-line)" stroke-width="2.5"/>';
+      svg += callout(136, 114, 136, 84, 'Sitz- & Polsterfläche');
+      svg += callout(188, 148, 200, 108, 'Gepolsterte Hebelrolle');
+      svg += callout(254, 82, 305, 56, 'Gewichtsblock');
+    } else if (p === 'pullupbar' || p === 'dipbars') {
+      svg += '<line x1="118" y1="36" x2="118" y2="162" ' + frame + '/><line x1="242" y1="36" x2="242" y2="162" ' + frame + '/>';
+      svg += '<line x1="108" y1="38" x2="252" y2="38" stroke="var(--ink)" stroke-width="6" stroke-linecap="round"/>';
+      svg += '<line x1="96" y1="98" x2="136" y2="98" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>';
+      svg += '<line x1="224" y1="98" x2="264" y2="98" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>';
+      svg += callout(180, 38, 180, 62, 'Klimmzugstange (oben)');
+      svg += callout(116, 98, 72, 76, 'Dip-Holme (Barren)');
+    } else if (p === 'preacher' || p === 'hyperbench') {
+      svg += '<rect x="92" y="114" width="46" height="10" rx="4" ' + pad + '/>';
+      svg += '<line x1="115" y1="124" x2="115" y2="162" ' + frame + '/>';
+      svg += '<line x1="146" y1="74" x2="188" y2="104" stroke="var(--ink-2)" stroke-width="11" stroke-linecap="round"/>';
+      svg += '<line x1="168" y1="92" x2="168" y2="162" ' + frame + '/>';
+      svg += '<path d="M188 82 Q198 76 208 82 T228 82" stroke="var(--accent)" stroke-width="4" fill="none"/>';
+      svg += callout(166, 88, 145, 52, 'Schräges Auflagepolster');
+      svg += callout(208, 82, 265, 64, 'Hantel-Ablage / Griff');
+    } else {
+      /* Freihanteln / Rack / Matte */
+      svg += '<line x1="76" y1="76" x2="284" y2="76" stroke="var(--ink)" stroke-width="4.5" stroke-linecap="round"/>';
+      svg += '<rect x="92" y="52" width="12" height="48" rx="2" ' + acc + '/><rect x="106" y="58" width="9" height="36" rx="2" fill="var(--ink-2)"/>';
+      svg += '<rect x="256" y="52" width="12" height="48" rx="2" ' + acc + '/><rect x="245" y="58" width="9" height="36" rx="2" fill="var(--ink-2)"/>';
+      svg += '<line x1="126" y1="132" x2="178" y2="132" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>';
+      svg += '<rect x="130" y="118" width="10" height="28" rx="2" ' + acc + '/><rect x="164" y="118" width="10" height="28" rx="2" ' + acc + '/>';
+      svg += callout(180, 76, 180, 48, 'Langhantel mit Gewichtsscheiben');
+      svg += callout(152, 118, 255, 134, 'Kurzhantel (Freigewicht)');
+    }
+
+    svg += '</svg>';
+    return svg;
+  }
+
+  function gearLink(g, key) {
+    var k = key || 'brust-0';
+    return '<button type="button" class="gear-btn" data-gear-toggle="' + esc(k) + '" data-gear-name="' + esc(g) + '" aria-expanded="false">' + ICON_GEAR + 'Geräte-Grafik anzeigen</button><div class="gear-pop" hidden></div>';
+  }
+
+  /* Active video animation loop */
+  var animMap = {};
+  var rafId = null;
+
+  function tickAnimations(now) {
+    var anyActive = false;
+    for (var key in animMap) {
+      var st = animMap[key];
+      if (!st || !st.playing) continue;
+      var container = document.getElementById('stage-' + key);
+      if (!container) { delete animMap[key]; continue; }
+      anyActive = true;
+      if (!st.last) st.last = now;
+      var dt = (now - st.last) * st.speed;
+      st.last = now;
+      st.elapsed = (st.elapsed + dt) % 3000;
+
+      var t = 0, phase = '1. Ausgangsposition';
+      if (st.elapsed < 1100) {
+        var u = st.elapsed / 1100;
+        t = 0.5 - 0.5 * Math.cos(Math.PI * u);
+        phase = 'Aufwärts / Anspannen (Konzentrisch)';
+      } else if (st.elapsed < 1500) {
+        t = 1;
+        phase = 'Endposition (Spannung kurz halten)';
+      } else if (st.elapsed < 2700) {
+        var u2 = (st.elapsed - 1500) / 1200;
+        t = 0.5 + 0.5 * Math.cos(Math.PI * u2);
+        phase = 'Langsam nachgeben (Exzentrisch)';
+      } else {
+        t = 0;
+        phase = 'Startposition';
+      }
+
+      var spec = POSES[key] || POSES['brust-0'];
+      var cur = interpPose(spec.a, spec.b, t);
+      var svgEl = container.querySelector('svg.anim-svg');
+      if (svgEl) {
+        svgEl.innerHTML =
+          '<g transform="translate(80, 14)">' +
+            renderPropSVG(spec.prop, cur) +
+            '<g opacity="0.18">' + renderFigureSVG(spec.a, spec) + '</g>' +
+            renderFigureSVG(cur, spec) +
+          '</g>';
+      }
+      var badge = container.querySelector('.phase-badge b');
+      if (badge) badge.textContent = phase;
+      var fill = container.querySelector('.vid-fill');
+      if (fill) fill.style.width = Math.round((st.elapsed / 3000) * 100) + '%';
+    }
+    if (anyActive) {
+      rafId = requestAnimationFrame(tickAnimations);
+    } else {
+      rafId = null;
+    }
+  }
+
+  function startVideoStage(key) {
+    var container = document.getElementById('stage-' + key);
+    if (!container) return;
+    var spec = POSES[key] || POSES['brust-0'];
+    animMap[key] = { playing: true, speed: 1, elapsed: 0, last: 0 };
+    container.innerHTML =
+      '<div class="phase-badge"><span>Bewegungsphase:</span> <b>Aufwärts / Anspannen</b></div>' +
+      '<svg class="anim-svg" viewBox="0 0 360 195" role="img" aria-label="Animiertes Übungsvideo">' +
+        '<g transform="translate(80, 14)">' + renderPropSVG(spec.prop, spec.a) + renderFigureSVG(spec.a, spec) + '</g>' +
+      '</svg>' +
+      '<div class="vid-controls">' +
+        '<button type="button" class="vid-btn" data-vid-play="' + key + '" aria-label="Animation pausieren oder abspielen">' + ICON_PAUSE + '</button>' +
+        '<div class="vid-bar"><div class="vid-fill"></div></div>' +
+        '<select class="vid-speed" data-vid-speed="' + key + '" aria-label="Geschwindigkeit">' +
+          '<option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option>' +
+        '</select>' +
+      '</div>';
+    if (!rafId) rafId = requestAnimationFrame(tickAnimations);
+  }
+
+  function stopAllVideos() {
+    animMap = {};
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  }
+
+  function drawPlan() {
+    stopAllVideos();
+    var r = byId(state.id);
+    var head = '<h2>' + esc(r.label) + '</h2><p>' + esc(r.muscles) + '</p>';
+    planHead.innerHTML = head;
+
+    grid.innerHTML = r.ex.map(function (x, i) {
+      var key = r.id + '-' + i;
+      return '<article class="ex" id="ex-' + key + '">' +
+        '<div class="ex-top"><h3><span class="n">' + (i + 1) + '</span>' + esc(x.n) + '</h3><span class="sets">' + esc(x.s) + '</span></div>' +
+        '<div class="media-box">' +
+          '<div class="media-tabs" role="tablist" aria-label="Ansicht für ' + esc(x.n) + '">' +
+            '<button type="button" role="tab" aria-selected="true" data-media-tab="img" data-key="' + key + '">' + ICON_PHOTO + 'Start &amp; Ende</button>' +
+            '<button type="button" role="tab" aria-selected="false" data-media-tab="vid" data-key="' + key + '">' + ICON_VIDEO + 'Video-Ablauf</button>' +
+            '<button type="button" role="tab" aria-selected="false" data-media-tab="gear" data-key="' + key + '" data-gear-name="' + esc(x.g) + '">' + ICON_GEAR + 'Gerät erklärt</button>' +
+          '</div>' +
+          '<div class="media-stage" id="stage-' + key + '">' + renderExerciseIllustration(key) + '</div>' +
+        '</div>' +
+        '<div class="gear"><span>Gerät</span><strong>' + esc(x.g) + '</strong></div>' +
+        '<p>' + esc(x.how) + '</p>' +
+        '<p class="err"><b>Häufiger Fehler:</b> ' + esc(x.err) + '</p>' +
+      '</article>';
+    }).join('');
+
+    caption.innerHTML = 'Auswahl: <b>' + esc(r.label) + '</b>';
+  }
+
+  function setView(v) {
+    state.view = v;
+    btnFront.setAttribute('aria-pressed', String(v === 'front'));
+    btnBack.setAttribute('aria-pressed', String(v === 'back'));
+    drawBody();
+  }
+
+  function select(id, opts) {
+    var r = byId(id);
+    if (!r) return;
+    state.id = id;
+    if (r.views.indexOf(state.view) === -1) {
+      setView(r.views[0]);
+    } else {
+      applyActive();
+    }
+    drawChips();
+    drawPlan();
+    if (opts && opts.scroll && window.matchMedia('(max-width: 859px)').matches) {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      planHead.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    }
+  }
+
+  svg.addEventListener('click', function (e) {
+    var g = e.target.closest ? e.target.closest('.region') : null;
+    if (g) select(g.getAttribute('data-id'), { scroll: true });
+  });
+  svg.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var g = e.target.closest ? e.target.closest('.region') : null;
+    if (g) { e.preventDefault(); select(g.getAttribute('data-id'), { scroll: true }); }
+  });
+  chips.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button') : null;
+    if (b) select(b.getAttribute('data-id'));
+  });
+  btnFront.addEventListener('click', function () { setView('front'); });
+  btnBack.addEventListener('click', function () { setView('back'); });
+
+  grid.addEventListener('click', function (e) {
+    var tab = e.target.closest ? e.target.closest('[data-media-tab]') : null;
+    if (tab) {
+      var key = tab.getAttribute('data-key');
+      var mode = tab.getAttribute('data-media-tab');
+      var box = tab.closest('.media-box');
+      if (box) {
+        var tabs = box.querySelectorAll('[data-media-tab]');
+        for (var i = 0; i < tabs.length; i++) {
+          tabs[i].setAttribute('aria-selected', String(tabs[i] === tab));
+        }
+      }
+      var stage = document.getElementById('stage-' + key);
+      if (!stage) return;
+      if (mode === 'vid') {
+        startVideoStage(key);
+      } else {
+        if (animMap[key]) animMap[key].playing = false;
+        if (mode === 'gear') {
+          stage.innerHTML = renderGearIllustration(key, tab.getAttribute('data-gear-name') || '');
+        } else {
+          stage.innerHTML = renderExerciseIllustration(key);
+        }
+      }
+      return;
+    }
+    var playBtn = e.target.closest ? e.target.closest('[data-vid-play]') : null;
+    if (playBtn) {
+      var k = playBtn.getAttribute('data-vid-play');
+      var st = animMap[k];
+      if (st) {
+        st.playing = !st.playing;
+        st.last = 0;
+        playBtn.innerHTML = st.playing ? ICON_PAUSE : ICON_PLAY;
+        if (st.playing && !rafId) rafId = requestAnimationFrame(tickAnimations);
+      }
+    }
+  });
+
+  grid.addEventListener('change', function (e) {
+    var sel = e.target.closest ? e.target.closest('[data-vid-speed]') : null;
+    if (sel) {
+      var k = sel.getAttribute('data-vid-speed');
+      if (animMap[k]) animMap[k].speed = parseFloat(sel.value) || 1;
+    }
+  });
+
+  /* ---- 4-Wochen-Plan ---- */
+  var WEEKS = [
+    { name: 'Einstieg', s: '2', r: '12–15', hint: 'Leichtes Gewicht, Technik lernen. Nach jedem Satz bleiben mindestens drei saubere Wiederholungen übrig.' },
+    { name: 'Aufbau', s: '3', r: '10–12', hint: 'Gewicht um etwa 5 % steigern, wenn alle Wiederholungen sauber gelingen. Etwa zwei Wiederholungen bleiben in Reserve.' },
+    { name: 'Steigerung', s: '3–4', r: '8–10', hint: 'Die schwerste Woche. Gewicht noch einmal leicht erhöhen, ein bis zwei Wiederholungen bleiben in Reserve.' },
+    { name: 'Entlastung', s: '2', r: '10', hint: 'Gewicht um etwa 20 % senken, damit sich der Körper erholt. Danach beginnt ein neuer Durchgang mit höheren Gewichten.' }
+  ];
+  var DAYS = [
+    { t: 'Brust, Schultern, Trizeps', items: [['brust', 0], ['brust', 1], ['schultern', 0], ['schultern', 1], ['trizeps', 0], ['trizeps', 2]] },
+    { t: 'Oberschenkel vorne, Waden, Bauch', items: [['quadrizeps', 0], ['quadrizeps', 1], ['quadrizeps', 2], ['beinbizeps', 1], ['waden', 0], ['bauch', 0]] },
+    { t: 'Rücken, Bizeps, Unterarme', items: [['ruecken-oben', 0], ['ruecken-oben', 1], ['ruecken-oben', 2], ['schultern', 2], ['bizeps', 0], ['bizeps', 3], ['unterarme', 0]] },
+    { t: 'Oberschenkel hinten, Gesäß, Rumpf', items: [['beinbizeps', 0], ['gesaess', 0], ['gesaess', 3], ['ruecken-unten', 0], ['waden', 1], ['bauch', 1], ['bauch', 2]] }
+  ];
+  var week = 0;
+  var viewAtlas = document.getElementById('view-atlas');
+  var viewPlan = document.getElementById('view-plan');
+  var modeAtlas = document.getElementById('mode-atlas');
+  var modePlan = document.getElementById('mode-plan');
+  var wkChips = document.getElementById('wk-chips');
+  var wkInfo = document.getElementById('wk-info');
+  var daysEl = document.getElementById('days');
+
+  function setsText(x, w) {
+    if (/Sek\./.test(x.s)) return x.s;
+    var m = x.s.match(/ je .*$/);
+    return w.s + ' × ' + w.r + ' Wdh.' + (m ? m[0] : '');
+  }
+
+  function drawWeekPlan() {
+    var w = WEEKS[week];
+    wkChips.innerHTML = WEEKS.map(function (k, i) {
+      return '<li><button type="button" data-week="' + i + '" aria-pressed="' + (i === week) + '">Woche ' + (i + 1) + ' · ' + esc(k.name) + '</button></li>';
+    }).join('');
+    wkInfo.innerHTML = '<h3>Woche ' + (week + 1) + ': ' + esc(w.name) + '</h3><p>' + esc(w.hint) + '</p><p class="scheme">Richtwert: ' + esc(w.s) + ' Sätze × ' + esc(w.r) + ' Wiederholungen</p>';
+    daysEl.innerHTML = DAYS.map(function (d, di) {
+      var lis = d.items.map(function (it) {
+        var r = byId(it[0]);
+        var x = r.ex[it[1]];
+        return '<li><div class="li-top"><button type="button" class="nm" data-r="' + r.id + '" data-i="' + it[1] + '">' + esc(x.n) + '</button><span class="sets">' + esc(setsText(x, w)) + '</span></div>' +
+          '<div class="li-meta"><b>' + esc(r.label) + '</b> · ' + esc(x.g) + '</div>' + gearLink(x.g, r.id + '-' + it[1]) + '</li>';
+      }).join('');
+      return '<article class="day"><p class="dn">Tag ' + (di + 1) + '</p><h3>' + esc(d.t) + '</h3><ol>' + lis + '</ol></article>';
+    }).join('');
+  }
+
+  function setMode(m) {
+    var isPlan = m === 'plan';
+    viewAtlas.hidden = isPlan;
+    viewPlan.hidden = !isPlan;
+    modeAtlas.setAttribute('aria-pressed', String(!isPlan));
+    modePlan.setAttribute('aria-pressed', String(isPlan));
+    if (isPlan) drawWeekPlan();
+  }
+
+  function openExercise(rid, i) {
+    setMode('atlas');
+    select(rid);
+    var t = document.getElementById('ex-' + rid + '-' + i);
+    if (t) {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+      t.classList.add('flash');
+      setTimeout(function () { t.classList.remove('flash'); }, 2000);
+    }
+  }
+
+  modeAtlas.addEventListener('click', function () { setMode('atlas'); });
+  modePlan.addEventListener('click', function () { setMode('plan'); });
+  viewPlan.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button') : null;
+    if (!b) return;
+    if (b.hasAttribute('data-week')) { week = parseInt(b.getAttribute('data-week'), 10); drawWeekPlan(); return; }
+    if (b.hasAttribute('data-r')) { openExercise(b.getAttribute('data-r'), parseInt(b.getAttribute('data-i'), 10)); return; }
+    if (b.hasAttribute('data-gear-toggle')) {
+      var k = b.getAttribute('data-gear-toggle');
+      var gName = b.getAttribute('data-gear-name') || '';
+      var pop = b.nextElementSibling;
+      if (pop) {
+        var isHidden = pop.hidden;
+        pop.hidden = !isHidden;
+        b.setAttribute('aria-expanded', String(isHidden));
+        if (isHidden && !pop.innerHTML) {
+          pop.innerHTML = renderGearIllustration(k, gName);
+        }
+      }
+    }
+  });
+
+  var start = 'brust';
+  var startMode = 'atlas';
+  try {
+    var h = (window.location.hash || '').replace('#', '');
+    if (h === 'plan') startMode = 'plan';
+    else if (h && byId(h)) start = h;
+  } catch (err) { /* keep default */ }
+  var startRegion = byId(start);
+  state.view = startRegion.views[0];
+  btnFront.setAttribute('aria-pressed', String(state.view === 'front'));
+  btnBack.setAttribute('aria-pressed', String(state.view === 'back'));
+  state.id = start;
+  drawBody();
+  drawChips();
+  drawPlan();
+  if (startMode === 'plan') setMode('plan');
+})();
+</script>
+
+</body></html>
